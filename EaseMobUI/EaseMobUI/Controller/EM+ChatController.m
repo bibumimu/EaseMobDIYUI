@@ -136,7 +136,7 @@ EMDeviceManagerDelegate>
     
     if (!_opposite) {
         id<EM_ChatOppositeDelegate> oppositeDelegate = [EaseMobUIClient sharedInstance].oppositeDelegate;
-        if (oppositeDelegate && [oppositeDelegate respondsToSelector:@selector(userForEMChat)]) {
+        if (oppositeDelegate && [oppositeDelegate respondsToSelector:@selector(buddyInfoWithChatter:)]) {
             if (_conversation.conversationType == eConversationTypeGroupChat) {
                 _opposite = [oppositeDelegate groupInfoWithChatter:_conversation.chatter];
             }else if(_conversation.conversationType == eConversationTypeChatRoom){
