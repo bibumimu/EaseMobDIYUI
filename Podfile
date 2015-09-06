@@ -3,7 +3,7 @@ platform :ios, '7.0'
 
 #环信
 #pod 'EaseMobSDKFull','2.1.7'
-pod 'EaseMobSDKFull', '2.2.0',:git => 'https://github.com/easemob/sdk-ios-cocoapods-integration.git'
+pod 'EaseMobSDKFull', :git => 'https://github.com/easemob/sdk-ios-cocoapods-integration.git'
 
 #图片加载
 pod 'SDWebImage','3.7.3'

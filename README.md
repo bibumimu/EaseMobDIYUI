@@ -46,7 +46,7 @@
 iOS版本7.0以上
 <h3 id = "2.2">pod</h3>
 ```
-pod 'EaseMobSDKFull', '2.2.0',:git => 'https://github.com/easemob/sdk-ios-cocoapods-integration.git'
+pod 'EaseMobSDKFull',:git => 'https://github.com/easemob/sdk-ios-cocoapods-integration.git'
 ```
 ```
 pod 'EaseMobDIYUI', :git => 'https://github.com/AwakenDragon/EaseMobDIYUI.git'
