@@ -13,6 +13,7 @@ typedef void (^EM_ChatOppositeHeaderManageBlock)(NSInteger section);
 
 @interface EM_ChatOppositeHeader : UITableViewHeaderFooterView
 
+@property (nonatomic, copy) NSString *arrow;
 @property (nonatomic, copy) NSString *title;
 @property (nonatomic, assign) NSInteger section;
 @property (nonatomic, assign) NSInteger buddyCount;

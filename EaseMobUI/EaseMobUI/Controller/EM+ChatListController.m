@@ -213,13 +213,8 @@
     }
     
     EM_ConversationCell *cell = [tableView dequeueReusableCellWithIdentifier:cellId];
-    
-    if (self.delegate && [self.delegate respondsToSelector:@selector(viewForConversationRowWithConversation:reuseView:reuseIdentifier:)]) {
-        cell = [self.delegate viewForConversationRowWithConversation:conversation reuseView:cell reuseIdentifier:cellId];
-    }else{
-        if (!cell) {
-            cell = [[EM_ConversationCell alloc]initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:cellId];
-        }
+    if (!cell) {
+        cell = [[EM_ConversationCell alloc]initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:cellId];
     }
     
     cell.indexPath = indexPath;
@@ -264,7 +259,7 @@
         cell.nameLabel.text = conversation.chatter;
     }
     
-    NSInteger unreadCount = 5;//conversation.unreadMessagesCount;
+    NSInteger unreadCount = conversation.unreadMessagesCount;
     cell.unreadView.hidden = unreadCount == 0;
     cell.unreadLabel.hidden = unreadCount == 0;
     cell.unreadLabel.text = [NSString stringWithFormat:@"[%ld%@]",unreadCount,[EM_ChatResourcesUtils stringWithName:@"common.message_unit"]];

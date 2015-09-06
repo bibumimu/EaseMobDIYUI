@@ -2,7 +2,8 @@ source 'https://github.com/CocoaPods/Specs.git'
 platform :ios, '7.0'
 
 #环信
-pod 'EaseMobSDKFull','2.1.7'
+#pod 'EaseMobSDKFull','2.1.7'
+pod 'EaseMobSDKFull', :git => 'https://github.com/easemob/sdk-ios-cocoapods-integration.git'
 
 #图片加载
 pod 'SDWebImage','3.7.3'
@@ -22,7 +23,7 @@ pod 'TTTAttributedLabel','1.13.4'
 #Cell左滑出现多个按钮
 pod 'SWTableViewCell','0.3.7'
 
-pod 'VoiceConvert',:git => "https://github.com/AwakenDragon/VoiceConvert.git"
+pod 'VoiceConvert',:git => 'https://github.com/AwakenDragon/VoiceConvert.git'
 
 #图片选择
 pod 'MLSelectPhoto','1.2.1'
@@ -35,3 +36,16 @@ pod 'FXBlurView','1.6.3'
 
 #JSONModel
 pod 'JSONModel','1.1.0'
+
+#Toast
+pod 'Toast','2.4'
+
+#Demo的依赖
+#点击键盘消息
+pod 'TPKeyboardAvoiding','1.2.9'
+
+#浮动编辑框
+pod 'JVFloatLabeledTextField','1.1.0'
+
+#TableView
+pod 'RETableViewManager','1.6'

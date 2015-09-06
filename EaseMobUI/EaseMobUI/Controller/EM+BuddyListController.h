@@ -90,6 +90,13 @@
 - (NSInteger)numberOfTags;
 
 /**
+ *  tag是否需要被选中
+ *  在初始化加载时，默认第一个允许selected的tag为YES
+ *  @return 默认NO
+ */
+- (BOOL)shouldSelectedForTagAtIndex:(NSInteger)index;
+
+/**
  *  tag标题
  *
  *  @param index tag索引
@@ -126,9 +133,18 @@
 /**
  *  好友分组数量
  *
- *  @return 默认1
+ *  @return 默认1,如果为1则不显示分组
  */
 - (NSInteger)numberOfGroups;
+
+/**
+ *  是否展开分组
+ *  只有numberOfGroups大于1时设置才有效
+ *  @param groupIndex
+ *
+ *  @return 默认YES
+ */
+- (BOOL)shouldExpandForGroupAtIndex:(NSInteger)index;
 
 /**
  *  分组标题

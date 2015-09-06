@@ -18,6 +18,7 @@
 - (instancetype)init{
     self = [super init];
     if (self) {
+        self.tabBarItem.image = [UIImage imageNamed:@"message"];
         self.delegate = self;
     }
     return self;

@@ -20,17 +20,28 @@
     if (self) {
         titleLabel = [[UILabel alloc]initWithFrame:CGRectMake(0, frame.size.height - 35, frame.size.width, 35)];
         titleLabel.textAlignment = NSTextAlignmentCenter;
-        titleLabel.textColor = [UIColor blackColor];
+        titleLabel.textColor = [UIColor colorWithHexRGB:TEXT_NORMAL_COLOR];
         [self.contentView addSubview:titleLabel];
         
         CGFloat size = frame.size.height - titleLabel.frame.size.height;
         
         iconView = [[UIButton alloc]initWithFrame:CGRectMake((frame.size.width - size) / 2, 0, size, size)];
+        iconView.enabled = NO;
         [iconView setTitleColor:[UIColor colorWithHexRGB:TEXT_NORMAL_COLOR] forState:UIControlStateNormal];
-        [iconView setTitleColor:[UIColor colorWithHexRGB:TEXT_SELECT_COLOR] forState:UIControlStateSelected];
         [self.contentView addSubview:iconView];
     }
     return self;
+}
+
+- (void)setTagSelected:(BOOL)tagSelected{
+    _tagSelected = tagSelected;
+    if (_tagSelected) {
+        [iconView setTitleColor:[UIColor colorWithHexRGB:TEXT_SELECT_COLOR] forState:UIControlStateNormal];
+        titleLabel.textColor = iconView.titleLabel.textColor;
+    }else{
+        [iconView setTitleColor:[UIColor colorWithHexRGB:TEXT_NORMAL_COLOR] forState:UIControlStateNormal];
+        titleLabel.textColor = iconView.titleLabel.textColor;
+    }
 }
 
 - (void)setTitle:(NSString *)title{
