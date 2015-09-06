@@ -35,3 +35,16 @@ pod 'FXBlurView','1.6.3'
 
 #JSONModel
 pod 'JSONModel','1.1.0'
+
+#Toast
+pod 'Toast','2.4'
+
+#Demo的依赖
+#点击键盘消息
+pod 'TPKeyboardAvoiding','1.2.9'
+
+#浮动编辑框
+pod 'JVFloatLabeledTextField','1.1.0'
+
+#TableView
+pod 'RETableViewManager','1.6'

@@ -12,6 +12,11 @@
 		B90086C51B7091CC003BC694 /* EM_ChatStrings.strings in Resources */ = {isa = PBXBuildFile; fileRef = B90086C31B7091CC003BC694 /* EM_ChatStrings.strings */; };
 		B90086C61B7091CC003BC694 /* EM_Resource.bundle in Resources */ = {isa = PBXBuildFile; fileRef = B90086C41B7091CC003BC694 /* EM_Resource.bundle */; };
 		B90087141B71AC42003BC694 /* EaseMobUIClient.m in Sources */ = {isa = PBXBuildFile; fileRef = B90087131B71AC42003BC694 /* EaseMobUIClient.m */; };
+		B92034981B9AE3810035BA23 /* USettingsController.m in Sources */ = {isa = PBXBuildFile; fileRef = B92034971B9AE3810035BA23 /* USettingsController.m */; };
+		B920349B1B9AE5220035BA23 /* ULoginController.m in Sources */ = {isa = PBXBuildFile; fileRef = B920349A1B9AE5220035BA23 /* ULoginController.m */; };
+		B920349F1B9AEA070035BA23 /* UAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = B920349E1B9AEA070035BA23 /* UAccount.m */; };
+		B92034A31B9BDF5A0035BA23 /* USettingsAvatarCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B92034A21B9BDF5A0035BA23 /* USettingsAvatarCell.m */; };
+		B92034A61B9BE2190035BA23 /* USettingAvatarItem.m in Sources */ = {isa = PBXBuildFile; fileRef = B92034A51B9BE2190035BA23 /* USettingAvatarItem.m */; };
 		B9281E4B1B8C752C00911A7A /* UChatListController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9281E4A1B8C752C00911A7A /* UChatListController.m */; };
 		B9281E4E1B8C756000911A7A /* UBuddyListController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9281E4D1B8C756000911A7A /* UBuddyListController.m */; };
 		B9281E541B8D69DC00911A7A /* EM+ChatOppositeTag.m in Sources */ = {isa = PBXBuildFile; fileRef = B9281E531B8D69DC00911A7A /* EM+ChatOppositeTag.m */; };
@@ -318,6 +323,16 @@
 		B90086C41B7091CC003BC694 /* EM_Resource.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = EM_Resource.bundle; sourceTree = "<group>"; };
 		B90087121B71AC42003BC694 /* EaseMobUIClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EaseMobUIClient.h; sourceTree = "<group>"; };
 		B90087131B71AC42003BC694 /* EaseMobUIClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EaseMobUIClient.m; sourceTree = "<group>"; };
+		B92034961B9AE3810035BA23 /* USettingsController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = USettingsController.h; sourceTree = "<group>"; };
+		B92034971B9AE3810035BA23 /* USettingsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = USettingsController.m; sourceTree = "<group>"; };
+		B92034991B9AE5220035BA23 /* ULoginController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ULoginController.h; sourceTree = "<group>"; };
+		B920349A1B9AE5220035BA23 /* ULoginController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ULoginController.m; sourceTree = "<group>"; };
+		B920349D1B9AEA070035BA23 /* UAccount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UAccount.h; sourceTree = "<group>"; };
+		B920349E1B9AEA070035BA23 /* UAccount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UAccount.m; sourceTree = "<group>"; };
+		B92034A11B9BDF5A0035BA23 /* USettingsAvatarCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = USettingsAvatarCell.h; sourceTree = "<group>"; };
+		B92034A21B9BDF5A0035BA23 /* USettingsAvatarCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = USettingsAvatarCell.m; sourceTree = "<group>"; };
+		B92034A41B9BE2190035BA23 /* USettingAvatarItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = USettingAvatarItem.h; sourceTree = "<group>"; };
+		B92034A51B9BE2190035BA23 /* USettingAvatarItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = USettingAvatarItem.m; sourceTree = "<group>"; };
 		B9281E491B8C752C00911A7A /* UChatListController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UChatListController.h; sourceTree = "<group>"; };
 		B9281E4A1B8C752C00911A7A /* UChatListController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UChatListController.m; sourceTree = "<group>"; };
 		B9281E4C1B8C756000911A7A /* UBuddyListController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UBuddyListController.h; sourceTree = "<group>"; };
@@ -948,6 +963,45 @@
 			path = Main;
 			sourceTree = "<group>";
 		};
+		B92034951B9AE3330035BA23 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				B92034A71B9BE21D0035BA23 /* Model */,
+				B92034A01B9BDF230035BA23 /* View */,
+				B92034961B9AE3810035BA23 /* USettingsController.h */,
+				B92034971B9AE3810035BA23 /* USettingsController.m */,
+			);
+			name = Settings;
+			path = Setting;
+			sourceTree = "<group>";
+		};
+		B920349C1B9AE9CD0035BA23 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				B920349D1B9AEA070035BA23 /* UAccount.h */,
+				B920349E1B9AEA070035BA23 /* UAccount.m */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		B92034A01B9BDF230035BA23 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				B92034A11B9BDF5A0035BA23 /* USettingsAvatarCell.h */,
+				B92034A21B9BDF5A0035BA23 /* USettingsAvatarCell.m */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		B92034A71B9BE21D0035BA23 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				B92034A41B9BE2190035BA23 /* USettingAvatarItem.h */,
+				B92034A51B9BE2190035BA23 /* USettingAvatarItem.m */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 		B9281E441B8C748100911A7A /* Chat */ = {
 			isa = PBXGroup;
 			children = (
@@ -956,7 +1010,7 @@
 				B97829F11B43DEE200D602F0 /* UChatController.h */,
 				B97829F21B43DEE200D602F0 /* UChatController.m */,
 			);
-			name = Chat;
+			path = Chat;
 			sourceTree = "<group>";
 		};
 		B9281E451B8C748C00911A7A /* ChatList */ = {
@@ -965,7 +1019,7 @@
 				B9281E491B8C752C00911A7A /* UChatListController.h */,
 				B9281E4A1B8C752C00911A7A /* UChatListController.m */,
 			);
-			name = ChatList;
+			path = ChatList;
 			sourceTree = "<group>";
 		};
 		B9281E461B8C749600911A7A /* BuddyList */ = {
@@ -974,7 +1028,7 @@
 				B9281E4C1B8C756000911A7A /* UBuddyListController.h */,
 				B9281E4D1B8C756000911A7A /* UBuddyListController.m */,
 			);
-			name = BuddyList;
+			path = BuddyList;
 			sourceTree = "<group>";
 		};
 		B9281E471B8C74B600911A7A /* Model */ = {
@@ -983,7 +1037,7 @@
 				B9C0E4A61B7DADD70036C0CB /* UserCustomExtend.h */,
 				B9C0E4A71B7DADD70036C0CB /* UserCustomExtend.m */,
 			);
-			name = Model;
+			path = Model;
 			sourceTree = "<group>";
 		};
 		B9281E481B8C74C700911A7A /* View */ = {
@@ -992,21 +1046,7 @@
 				B9C0E4A91B7DAE010036C0CB /* UserCustomExtendView.h */,
 				B9C0E4AA1B7DAE010036C0CB /* UserCustomExtendView.m */,
 			);
-			name = View;
-			sourceTree = "<group>";
-		};
-		B9281E551B8DBB5400911A7A /* Login */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Login;
-			sourceTree = "<group>";
-		};
-		B9281E561B8DBB6100911A7A /* User */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = User;
+			path = View;
 			sourceTree = "<group>";
 		};
 		B928ACE01B58E1AA00F618BE /* Body */ = {
@@ -1529,18 +1569,20 @@
 			path = Controller;
 			sourceTree = "<group>";
 		};
-		B97829F01B43DEB700D602F0 /* Controller */ = {
+		B97829F01B43DEB700D602F0 /* Demo */ = {
 			isa = PBXGroup;
 			children = (
-				B9281E551B8DBB5400911A7A /* Login */,
-				B9281E561B8DBB6100911A7A /* User */,
+				B920349C1B9AE9CD0035BA23 /* Model */,
+				B92034951B9AE3330035BA23 /* Settings */,
 				B9281E461B8C749600911A7A /* BuddyList */,
 				B9281E451B8C748C00911A7A /* ChatList */,
 				B9281E441B8C748100911A7A /* Chat */,
 				B96EA2051B8ABBE200F9527A /* MainController.h */,
 				B96EA2061B8ABBE200F9527A /* MainController.m */,
+				B92034991B9AE5220035BA23 /* ULoginController.h */,
+				B920349A1B9AE5220035BA23 /* ULoginController.m */,
 			);
-			path = Controller;
+			path = Demo;
 			sourceTree = "<group>";
 		};
 		B97829FA1B43EE0A00D602F0 /* View */ = {
@@ -1849,7 +1891,7 @@
 		B9BF0DF91B42889F0003FF67 /* EaseMobUI */ = {
 			isa = PBXGroup;
 			children = (
-				B97829F01B43DEB700D602F0 /* Controller */,
+				B97829F01B43DEB700D602F0 /* Demo */,
 				B95E576E1B43CD7000A844EF /* EaseMobUI */,
 				B9BF0DFE1B42889F0003FF67 /* AppDelegate.h */,
 				B9BF0DFF1B42889F0003FF67 /* AppDelegate.m */,
@@ -2116,6 +2158,7 @@
 				B93228581B90B92D00B553C1 /* GPUImageThresholdEdgeDetectionFilter.m in Sources */,
 				B93227F41B90B92D00B553C1 /* GPUImageExposureFilter.m in Sources */,
 				B93228101B90B92D00B553C1 /* GPUImageJFAVoronoiFilter.m in Sources */,
+				B920349F1B9AEA070035BA23 /* UAccount.m in Sources */,
 				B93228191B90B92D00B553C1 /* GPUImageLocalBinaryPatternFilter.m in Sources */,
 				B93228541B90B92D00B553C1 /* GPUImageSwirlFilter.m in Sources */,
 				B93227F31B90B92D00B553C1 /* GPUImageExclusionBlendFilter.m in Sources */,
@@ -2182,6 +2225,7 @@
 				B9281E4B1B8C752C00911A7A /* UChatListController.m in Sources */,
 				B93227FC1B90B92D00B553C1 /* GPUImageGammaFilter.m in Sources */,
 				B93228681B90B92D00B553C1 /* GPUImageWeakPixelInclusionFilter.m in Sources */,
+				B920349B1B9AE5220035BA23 /* ULoginController.m in Sources */,
 				B932282A1B90B92D00B553C1 /* GPUImageNobleCornerDetectionFilter.m in Sources */,
 				B9D1BFAF1B5CE8CF00C0A3D4 /* EM+LocationController.m in Sources */,
 				B9D1BFA41B5A4C3900C0A3D4 /* EMCDDeviceManagerBase.m in Sources */,
@@ -2239,6 +2283,7 @@
 				B97F05451B73AA420096B98D /* EM+ChatFileUtils.m in Sources */,
 				B93228061B90B92D00B553C1 /* GPUImageHighlightShadowFilter.m in Sources */,
 				B93227F11B90B92D00B553C1 /* GPUImageEmbossFilter.m in Sources */,
+				B92034A61B9BE2190035BA23 /* USettingAvatarItem.m in Sources */,
 				B98FC8E41B788233008A95FE /* DDFileLogger.m in Sources */,
 				B9A0E0FE1B841835006E5636 /* EM+ChatHttpErrorResponse.m in Sources */,
 				B932281B1B90B92D00B553C1 /* GPUImageLowPassFilter.m in Sources */,
@@ -2247,6 +2292,7 @@
 				B93227D21B90B92D00B553C1 /* GPUImageAlphaBlendFilter.m in Sources */,
 				B9D1BFBC1B5E17AD00C0A3D4 /* EM+ChatMessageVideoBody.m in Sources */,
 				B93228091B90B92D00B553C1 /* GPUImageHistogramFilter.m in Sources */,
+				B92034981B9AE3810035BA23 /* USettingsController.m in Sources */,
 				B93228271B90B92D00B553C1 /* GPUImageMovie.m in Sources */,
 				B93228331B90B92D00B553C1 /* GPUImagePinchDistortionFilter.m in Sources */,
 				B93228601B90B92D00B553C1 /* GPUImageTwoInputFilter.m in Sources */,
@@ -2280,6 +2326,7 @@
 				B932285D1B90B92D00B553C1 /* GPUImageToonFilter.m in Sources */,
 				B97F05561B7465240096B98D /* EM_ChatConversation.m in Sources */,
 				B93228041B90B92D00B553C1 /* GPUImageHarrisCornerDetectionFilter.m in Sources */,
+				B92034A31B9BDF5A0035BA23 /* USettingsAvatarCell.m in Sources */,
 				B98FC8B21B788216008A95FE /* MultipartMessageHeaderField.m in Sources */,
 				B93228461B90B92D00B553C1 /* GPUImageSharpenFilter.m in Sources */,
 				B98FC8E81B788233008A95FE /* DispatchQueueLogFormatter.m in Sources */,
@@ -2524,7 +2571,6 @@
 		B9BF0E1E1B4288A00003FF67 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
@@ -2543,7 +2589,6 @@
 		B9BF0E1F1B4288A00003FF67 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",

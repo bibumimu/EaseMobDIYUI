@@ -29,6 +29,7 @@
 - (instancetype)init{
     self = [super init];
     if (self) {
+        self.title = @"联系人";
         tags = @[@"新朋友",@"特别关心",@"群组",@"黑名单"];
         
         buddyArray = [[NSMutableArray alloc]init];

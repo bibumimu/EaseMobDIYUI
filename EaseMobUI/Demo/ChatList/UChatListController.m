@@ -18,6 +18,7 @@
 - (instancetype)init{
     self = [super init];
     if (self) {
+        self.title = @"消息";
         self.delegate = self;
     }
     return self;
