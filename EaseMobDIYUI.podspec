@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
 
   # ―――  Spec Metadata  ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
   s.name         = "EaseMobDIYUI"
-  s.version      = "0.2.3"
+  s.version      = "0.2.4"
   s.summary      = "环信DIY聊天UI"
 
   s.description  = <<-DESC
@@ -81,7 +81,6 @@ Pod::Spec.new do |s|
   # ――― Project Settings ――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
   s.requires_arc = true
   # s.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
-  s.dependency "EaseMobSDKFull", "2.1.7"
   s.dependency "SDWebImage", "3.7.3"
   s.dependency "MJRefresh", "2.4.7"
   s.dependency "MWPhotoBrowser", "2.1.1"

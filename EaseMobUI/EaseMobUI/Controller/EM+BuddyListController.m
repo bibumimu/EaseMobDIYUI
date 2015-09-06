@@ -57,7 +57,6 @@ UICollectionViewDelegateFlowLayout>
     _tableView.dataSource = self;
     _tableView.delegate = self;
     _tableView.rowHeight = 60;
-    _tableView.sectionHeaderHeight = 40;
     _tableView.contentInset = UIEdgeInsetsMake(self.offestY > 0 ? self.offestY : 0, 0, 0, 0);
     _tableView.tapDelegate = self;
     
@@ -207,6 +206,21 @@ UICollectionViewDelegateFlowLayout>
 
 #pragma mark - UICollectionViewDelegate
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    
+    BOOL shouldSelected = NO;
+    if (self.dataSource && [self.dataSource respondsToSelector:@selector(shouldSelectedForTagAtIndex:)]) {
+        shouldSelected = [self.dataSource shouldSelectedForTagAtIndex:indexPath.row];
+    }
+    
+    if (shouldSelected) {
+        for (int i = 0; i < [collectionView numberOfItemsInSection:indexPath.section]; i++) {
+            NSIndexPath *index = [NSIndexPath indexPathForRow:i inSection:indexPath.section];
+            EM_ChatOppositeTag *cell = (EM_ChatOppositeTag *)[collectionView cellForItemAtIndexPath:index];
+            cell.tagSelected = index.row == indexPath.row;
+        }
+    }
+
+    
     if (self.delegate && [self.delegate respondsToSelector:@selector(didSelectedForTagAtIndex:)]) {
         [self.delegate didSelectedForTagAtIndex:indexPath.row];
     }
@@ -263,9 +277,16 @@ UICollectionViewDelegateFlowLayout>
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
     if (tableView == _tableView) {
+        
         NSInteger rowCount = 0;
-        if (self.dataSource && [self.dataSource respondsToSelector:@selector(numberOfRowsAtGroupIndex:)]) {
-            rowCount = [self.dataSource numberOfRowsAtGroupIndex:section];
+        BOOL expand = YES;
+        if (tableView.numberOfSections > 1 && self.dataSource && [self.dataSource respondsToSelector:@selector(shouldExpandForGroupAtIndex:)]) {
+            expand = [self.dataSource shouldExpandForGroupAtIndex:section];
+        }
+        if (expand) {
+            if (self.dataSource && [self.dataSource respondsToSelector:@selector(numberOfRowsAtGroupIndex:)]) {
+                rowCount = [self.dataSource numberOfRowsAtGroupIndex:section];
+            }
         }
         return rowCount;
     }else if(tableView == _searchController.searchResultsTableView){
@@ -310,44 +331,66 @@ UICollectionViewDelegateFlowLayout>
 }
 
 #pragma mark - UITableViewDelegate
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
+    if ([tableView numberOfSections] > 1 && tableView == _tableView) {
+        return 40;
+    }
+    return 0;
+}
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section{
-    if (tableView == _tableView) {
-        static NSString *headerIdentifier = @"headerIdentifier";
-        EM_ChatOppositeHeader *header = [tableView dequeueReusableHeaderFooterViewWithIdentifier:headerIdentifier];
-        if (!header) {
-            header = [[EM_ChatOppositeHeader alloc]initWithReuseIdentifier:headerIdentifier];
-            
-            NSInteger rowCount = 0;
-            if (self.dataSource && [self.dataSource respondsToSelector:@selector(numberOfRowsAtGroupIndex:)]) {
-                rowCount = [self.dataSource numberOfRowsAtGroupIndex:section];
-            }
-            header.buddyCount = rowCount;
-            
-            [header setChatOppositeHeaderClickedBlock:^(NSInteger s) {
-                if (self.delegate && [self.delegate respondsToSelector:@selector(didSelectedForGroupAtIndex:)]) {
-                    [self.delegate didSelectedForGroupAtIndex:s];
+    NSInteger groupCount = [tableView numberOfSections];
+    if (groupCount > 1) {
+        if (tableView == _tableView) {
+            static NSString *headerIdentifier = @"headerIdentifier";
+            EM_ChatOppositeHeader *header = [tableView dequeueReusableHeaderFooterViewWithIdentifier:headerIdentifier];
+            if (!header) {
+                header = [[EM_ChatOppositeHeader alloc]initWithReuseIdentifier:headerIdentifier];
+                
+                BOOL expand = YES;
+                if (self.dataSource && [self.dataSource respondsToSelector:@selector(shouldExpandForGroupAtIndex:)]) {
+                    expand = [self.dataSource shouldExpandForGroupAtIndex:section];
                 }
-            }];
-            
-            [header setChatOppositeHeaderManageBlock:^(NSInteger section) {
-                if (self.delegate && [self.delegate respondsToSelector:@selector(didSelectedForGroupManageAtIndex:)]) {
-                    [self.delegate didSelectedForGroupManageAtIndex:section];
+                
+                if (expand) {
+                    header.arrow = kEMChatIconBuddyStretch;
+                }else{
+                    header.arrow = kEMChatIconBuddyShrink;
                 }
-            }];
-            
-            if (self.dataSource && [self.dataSource respondsToSelector:@selector(shouldShowGroupManage)]) {
-                header.needManage = [self.dataSource shouldShowGroupManage];
+                
+                NSInteger rowCount = 0;
+                if (self.dataSource && [self.dataSource respondsToSelector:@selector(numberOfRowsAtGroupIndex:)]) {
+                    rowCount = [self.dataSource numberOfRowsAtGroupIndex:section];
+                }
+                header.buddyCount = rowCount;
+                
+                [header setChatOppositeHeaderClickedBlock:^(NSInteger s) {
+                    if (self.delegate && [self.delegate respondsToSelector:@selector(didSelectedForGroupAtIndex:)]) {
+                        [self.delegate didSelectedForGroupAtIndex:s];
+                    }
+                }];
+                
+                [header setChatOppositeHeaderManageBlock:^(NSInteger section) {
+                    if (self.delegate && [self.delegate respondsToSelector:@selector(didSelectedForGroupManageAtIndex:)]) {
+                        [self.delegate didSelectedForGroupManageAtIndex:section];
+                    }
+                }];
+                
+                if (self.dataSource && [self.dataSource respondsToSelector:@selector(shouldShowGroupManage)]) {
+                    header.needManage = [self.dataSource shouldShowGroupManage];
+                }
             }
-        }
-        NSString *title;
-        if (self.dataSource && [self.dataSource respondsToSelector:@selector(titleForGroupAtIndex:)]) {
-            title = [self.dataSource titleForGroupAtIndex:section];
+            NSString *title;
+            if (self.dataSource && [self.dataSource respondsToSelector:@selector(titleForGroupAtIndex:)]) {
+                title = [self.dataSource titleForGroupAtIndex:section];
+            }else{
+                title = [NSString stringWithFormat:@"%@%ld",[EM_ChatResourcesUtils stringWithName:@"common.group_name"],section + 1];
+            }
+            header.title = title;
+            header.section = section;
+            return header;
         }else{
-            title = [NSString stringWithFormat:@"%@%ld",[EM_ChatResourcesUtils stringWithName:@"common.group_name"],section + 1];
+            return nil;
         }
-        header.title = title;
-        header.section = section;
-        return header;
     }else{
         return nil;
     }

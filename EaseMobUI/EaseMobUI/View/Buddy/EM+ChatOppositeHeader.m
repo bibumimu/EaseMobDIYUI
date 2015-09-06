@@ -13,6 +13,7 @@
 
 @implementation EM_ChatOppositeHeader{
     UIView *_topLineView;
+    UILabel *_arrowLabel;
     UILabel *_titleLabel;
     UILabel *_buddyCountLabel;
     
@@ -25,6 +26,12 @@
 - (instancetype)initWithReuseIdentifier:(NSString *)reuseIdentifier{
     self = [super initWithReuseIdentifier:reuseIdentifier];
     if (self) {
+        
+        _arrowLabel = [[UILabel alloc]init];
+        _arrowLabel.font = [EM_ChatResourcesUtils iconFontWithSize:16];
+        _arrowLabel.textColor = [UIColor blackColor];
+        [self.contentView addSubview:_arrowLabel];
+        
         _titleLabel = [[UILabel alloc]init];
         _titleLabel.textColor = [UIColor blackColor];
         [self.contentView addSubview:_titleLabel];
@@ -57,7 +64,11 @@
 - (void)layoutSubviews{
     [super layoutSubviews];
     CGSize size = self.frame.size;
-    _titleLabel.frame = CGRectMake(15, 0, size.width, size.height);
+    
+    [_arrowLabel sizeToFit];
+    _arrowLabel.center = CGPointMake(LEFT_PADDING + _arrowLabel.frame.size.width / 2, size.height / 2);
+    
+    _titleLabel.frame = CGRectMake(LEFT_PADDING * 2 + _arrowLabel.frame.size.width, 0, size.width, size.height);
     [_buddyCountLabel sizeToFit];
     _buddyCountLabel.center = CGPointMake(size.width - RIGHT_PADDING - _buddyCountLabel.frame.size.width / 2, size.height / 2);
     
@@ -70,6 +81,11 @@
 
 - (void)setChatOppositeHeaderManageBlock:(EM_ChatOppositeHeaderManageBlock)block{
     _manageBlock = block;
+}
+
+- (void)setArrow:(NSString *)arrow{
+    _arrow = arrow;
+    _arrowLabel.text = _arrow;
 }
 
 - (void)setTitle:(NSString *)title{

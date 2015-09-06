@@ -38,6 +38,7 @@
     self = [super init];
     if (self) {
         self.title = @"设置";
+        self.tabBarItem.image = [UIImage imageNamed:@"settings"];
         self.options = [[EaseMob sharedInstance].chatManager pushNotificationOptions];
     }
     return self;

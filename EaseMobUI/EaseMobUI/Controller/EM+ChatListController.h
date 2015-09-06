@@ -12,9 +12,12 @@
 @class EM_ChatOpposite;
 @class EM_ConversationCell;
 
+@protocol EM_ChatListControllerDataSource;
 @protocol EM_ChatListControllerDelegate;
 
 @interface EM_ChatListController : EM_ChatBaseController
+
+@property (nonatomic, weak) id<EM_ChatListControllerDataSource> dataSorce;
 
 @property (nonatomic, weak) id<EM_ChatListControllerDelegate> delegate;
 
@@ -40,6 +43,14 @@
 
 @end
 
+@protocol EM_ChatListControllerDataSource <NSObject>
+
+@required
+
+@optional
+
+@end
+
 @protocol EM_ChatListControllerDelegate <NSObject>
 
 @required
@@ -60,13 +71,6 @@
  *  @return 
  */
 - (CGFloat)heightForConversationRow;
-
-/**
- *  自定义Cell必须继承EM_ConversationCell
- *
- *  @return 不能返回nil
- */
-- (EM_ConversationCell *)viewForConversationRowWithConversation:(EMConversation *)conversation reuseView:(EM_ConversationCell *)cell reuseIdentifier:(NSString *)reuseIdentifier;
 
 /**
  *  会话显示的简短信息

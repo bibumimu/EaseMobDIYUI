@@ -30,9 +30,6 @@
     self = [super initWithOpposite:opposite];
     if (self) {
         self.delegate = self;
-        EM_ChatMessageExtend *extend = [[UserCustomExtend alloc]init];
-        extend.showBody = YES;
-        extend.showExtend = NO;
     }
     return self;
 }
@@ -50,7 +47,7 @@
 - (EM_ChatMessageExtend *)extendForMessage:(id)body messageType:(MessageBodyType)type{
     EM_ChatMessageExtend *extend = [[UserCustomExtend alloc]init];
     extend.showBody = YES;
-    extend.showExtend = YES;
+    extend.showExtend = NO;
     return extend;
 }
 

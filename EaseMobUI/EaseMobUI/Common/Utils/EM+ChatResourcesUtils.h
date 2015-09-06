@@ -40,6 +40,13 @@ extern NSString * const kEMChatIconCallConnect;
 extern NSString * const kEMChatIconCallSilence;
 extern NSString * const kEMChatIconCallExpand;
 
+extern NSString * const kEMChatIconBuddyShrink;
+extern NSString * const kEMChatIconBuddyStretch;
+
+extern NSString * const kEMChatIconBuddyNew;
+extern NSString * const kEMChatIconBuddyGroup;
+extern NSString * const kEMChatIconBuddyRoom;
+extern NSString * const kEMChatIconBuddyBlacklist;
 
 @interface EM_ChatResourcesUtils : NSObject
 

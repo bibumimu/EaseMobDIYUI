@@ -25,10 +25,10 @@
 * [期望](#3)
   
 <h2 id = "1">简介</h2>
-集成环信的即时通讯功能，pod集成，方便管理。简单继承，轻松定制自己的UI界面。当前最新版本```0.2.3```,主要由会话列表(```EM_ConversationListController```)、好友列表(```EM_FriendsController```)和聊天界面(```EM_ChatController```)组成。很多功能和界面都在开发中，聊天界面的UI也没有开发完善，所以现在显示很挫。在```1.0.0```版本之前会完成所有可以使用环信SDK实现的功能，并且加入其它实用的功能，在此之前也不适合使用。当然你也可以参考环信的[Demo](http://www.easemob.com/downloads)。
+集成环信的即时通讯功能，pod集成，方便管理。简单继承，轻松定制自己的UI界面。当前最新版本```0.2.4```,主要由会话列表(```EM_ConversationListController```)、好友列表(```EM_FriendsController```)和聊天界面(```EM_ChatController```)组成。很多功能和界面都在开发中，聊天界面的UI也没有开发完善，所以现在显示很挫。在```1.0.0```版本之前会完成所有可以使用环信SDK实现的功能，并且加入其它实用的功能，在此之前也不适合使用。当然你也可以参考环信的[Demo](http://www.easemob.com/downloads)。
 
 <h3 id = "1.1">环信SDK</h3>
-使用pod集成的[EaseMobSDKFull](https://github.com/dujiepeng/EaseMobSDKFull)，集成版本```2.1.7```。因为pod集成[EaseMobSDK](https://github.com/easemob/sdk-ios-cocoapods)是没有语音和视频通讯功能的。
+使用pod集成的[EaseMobSDKFull](https://github.com/easemob/sdk-ios-cocoapods-integration)，集成版本```2.2.0```。因为pod集成[EaseMobSDK](https://github.com/easemob/sdk-ios-cocoapods/tree/master/EaseMobSDK)是没有语音和视频通讯功能的。根据环信的官方文档来看，pod集成的是私有库，cocoapods公共库上得SDK已经弃用了。所以需要大家自己单独pod环信SDK
 
 <h3 id = "1.2">额外功能</h3>
 - 会话编辑状态保存
@@ -46,6 +46,9 @@
 iOS版本7.0以上
 <h3 id = "2.2">pod</h3>
 ```
+pod 'EaseMobSDKFull', '2.2.0',:git => 'https://github.com/easemob/sdk-ios-cocoapods-integration.git'
+```
+```
 pod 'EaseMobDIYUI', :git => 'https://github.com/AwakenDragon/EaseMobDIYUI.git'
 ```
 ```
@@ -55,8 +58,7 @@ pod 'VoiceConvert',:git => "https://github.com/AwakenDragon/VoiceConvert.git"
 *PS:语音消息的播放需要[VoiceConvert](https://github.com/AwakenDragon/VoiceConvert)功能模块，开始我试图直接把[VoiceConvert](https://github.com/AwakenDragon/VoiceConvert)功能代码放到项目里使用，但在制作成pod并使用的时候，总是报找不到相关类库文件的错误。无奈只能单独将[VoiceConvert](https://github.com/AwakenDragon/VoiceConvert)功能做成pod来集成。但在制作[EaseMobDIYUI](https://github.com/AwakenDragon/EaseMobDIYUI)的pod的时候，没有办法把[VoiceConvert](https://github.com/AwakenDragon/VoiceConvert)作为依赖添加进入，所以只能要求使用者，在pod [EaseMobDIYUI](https://github.com/AwakenDragon/EaseMobDIYUI) 的时候，同时pod [VoiceConvert](https://github.com/AwakenDragon/VoiceConvert)。后期，我会想办法修复这个问题，好可以只pod [EaseMobDIYUI](https://github.com/AwakenDragon/EaseMobDIYUI)。*
 
 <h3 id = "2.3">依赖</h3>
-在pod [EaseMobDIYUI](https://github.com/AwakenDragon/EaseMobDIYUI)的时候，EaseMobSDKFull已经添加了以下依赖：
-- ```'EaseMobSDKFull', '2.1.7'``` 不解释 [EaseMobSDKFull](https://github.com/dujiepeng/EaseMobSDKFull)
+在pod [EaseMobDIYUI](https://github.com/AwakenDragon/EaseMobDIYUI)的时候，EaseMobUI已经添加了以下依赖：
 - ```'SDWebImage', '3.7.3'``` 用来加载图片的 [SDWebImage](https://github.com/rs/SDWebImage)
 - ```'MJRefresh', '2.4.7'``` 上拉下拉，相信你也会用到 [MJRefresh](https://github.com/CoderMJLee/MJRefresh)
 - ```'MWPhotoBrowser', '2.1.1'``` 图片浏览，同时也支持视频播放 [MWPhotoBrowser](https://github.com/mwaterfall/MWPhotoBrowser)
@@ -68,10 +70,10 @@ pod 'VoiceConvert',:git => "https://github.com/AwakenDragon/VoiceConvert.git"
 
 所以你不需要再额外pod这些了。
 
-**注意：**在pod完成开始运行的时候， [EaseMobSDKFull](https://github.com/dujiepeng/EaseMobSDKFull)
+**注意：**在pod完成开始运行的时候， [EaseMobSDKFull](https://github.com/easemob/sdk-ios-cocoapods-integration.git)
 的一个文件*```EMErrorDefs.h```*可能会报错，具体原因是几个枚举没有或者重复。
 
-**解决办法：**从环信最新的SDK([EaseMobSDK](https://github.com/easemob/sdk-ios-cocoapods) )中拿到这个文件，然后进入自己项目[EaseMobSDKFull](https://github.com/dujiepeng/EaseMobSDKFull)的对应pod目录，覆盖掉该文件即可。虽然在```XCode```里不允许修改pod的文件，但这样做事没有问题的。
+**解决办法：**从环信最新的SDK([EaseMobSDK](https://github.com/easemob/sdk-ios-cocoapods/tree/master/EaseMobSDK) )中拿到这个文件，然后进入自己项目[EaseMobSDKFull](https://github.com/easemob/sdk-ios-cocoapods-integration.git)的对应pod目录，覆盖掉该文件即可。虽然在```XCode```里不允许修改pod的文件，但这样做事没有问题的。
 
 **文件目录：**
 - ```EaseMobSDK --> include --> Utility --> ErrorManager --> EMErrorDefs.h``` 
@@ -221,12 +223,20 @@ EM_ChatListController
 ```
 #import "EM+ChatBaseController.h"
 @class EMConversation;
+@class EM_ChatMessageModel;
+@class EM_ChatOpposite;
+@class EM_ConversationCell;
 
 @protocol EM_ChatListControllerDelegate;
 
 @interface EM_ChatListController : EM_ChatBaseController
 
 @property (nonatomic, weak) id<EM_ChatListControllerDelegate> delegate;
+
+@property (nonatomic, strong, readonly) UISearchDisplayController *searchController;
+
+@property (nonatomic, strong, readonly) UISearchBar *searchBar;
+
 
 /**
  *  重新加载会话
@@ -250,6 +260,31 @@ EM_ChatListController
 @required
 
 @optional
+
+/**
+ *  是否显示搜索
+ *  默认YES,如果返回NO,则searchController和searchBar未nil
+ *
+ *  @return 
+ */
+- (BOOL)shouldShowSearchBar;
+
+/**
+ *  会话列表的行高
+ *
+ *  @return 
+ */
+- (CGFloat)heightForConversationRow;
+
+/**
+ *  会话显示的简短信息
+ *  如果是编辑状态则默认显示编辑内容，此时不会调用该代理;
+ *  如果是语音通讯或者视频通讯则默认显示通话结果，此时不会调用该代理;
+ *  如果返回nil或者未实现，则默认显示最新一条消息的内容
+ *  @param opposite 聊天对象，好友，群，聊天室
+ *  @param message  聊天的最新一条消息，有可能为空
+ */
+- (NSMutableAttributedString *)introForConversationWithOpposite:(EM_ChatOpposite *)opposite message:(EM_ChatMessageModel *)message;
 
 /**
  *  选中某一会话
@@ -400,6 +435,13 @@ EM_BuddyListController
 - (NSInteger)numberOfTags;
 
 /**
+ *  tag是否需要被选中
+ *  在初始化加载时，默认第一个允许selected的tag为YES
+ *  @return 默认NO
+ */
+- (BOOL)shouldSelectedForTagAtIndex:(NSInteger)index;
+
+/**
  *  tag标题
  *
  *  @param index tag索引
@@ -427,11 +469,27 @@ EM_BuddyListController
 - (NSString *)iconForTagAtIndex:(NSInteger)index;
 
 /**
+ *  是否显示分组管理菜单
+ *
+ *  @return
+ */
+- (BOOL)shouldShowGroupManage;
+
+/**
  *  好友分组数量
  *
  *  @return 默认1
  */
 - (NSInteger)numberOfGroups;
+
+/**
+ *  是否展开分组
+ *  只有numberOfGroups大于1时设置才有效
+ *  @param groupIndex
+ *
+ *  @return 默认YES
+ */
+- (BOOL)shouldExpandForGroupAtIndex:(NSInteger)index;
 
 /**
  *  分组标题
@@ -511,10 +569,16 @@ EM_BuddyListController
 ```
 #import "CustomBuddyListController.h"
 #import "CustomChatController.h"
-#import "EaseMob.h"
-
 #import "EM+ChatOppositeTag.h"
 #import "EM+ChatBuddy.h"
+
+#import "EM+ChatResourcesUtils.h"
+
+#import <EaseMobSDKFull/EaseMob.h>
+
+#define GroupName           (@"groupName")
+#define GroupExpand         (@"groupExpand")
+#define GroupBuddys         (@"groupBuddys")
 
 @interface CustomBuddyListController ()<EM_ChatBuddyListControllerDataSource,EM_ChatBuddyListControllerDelegate,EMChatManagerDelegate>
 
@@ -524,6 +588,7 @@ EM_BuddyListController
 
 @implementation CustomBuddyListController{
     NSArray *tags;
+    NSArray *icons;
     NSMutableArray *buddyArray;
     NSMutableArray *searchArray;
 }
@@ -531,13 +596,15 @@ EM_BuddyListController
 - (instancetype)init{
     self = [super init];
     if (self) {
-        tags = @[@"新朋友",@"特别关心",@"群组",@"黑名单"];
+        tags = @[@"新朋友",@"群组",@"讨论组",@"黑名单"];
         
         buddyArray = [[NSMutableArray alloc]init];
         for (int i = 0; i < 2; i++) {
-            [buddyArray addObject:[[NSMutableDictionary alloc]initWithDictionary:@{@"groupName":[NSString stringWithFormat:@"我的好友%d",i + 1],
-                                                                                   @"groupExpand":@(NO),
-                                                                                   @"buddys":[[NSMutableArray alloc]init]}]];
+            [buddyArray addObject:[[NSMutableDictionary alloc]initWithDictionary:@{
+                                                                                   GroupName : [NSString stringWithFormat:@"我的好友%d",i+1],
+                                                                                   GroupExpand : @(NO),
+                                                                                   GroupBuddys : [[NSMutableArray alloc]init]
+                                                                                   }]];
         }
         searchArray = [[NSMutableArray alloc]init];
         self.dataSource = self;
@@ -583,6 +650,10 @@ EM_BuddyListController
     return tags.count;
 }
 
+- (UIFont *)fontForTagAtIndex:(NSInteger)index{
+    return [EM_ChatResourcesUtils iconFontWithSize:30];
+}
+
 - (NSString *)titleForTagAtIndex:(NSInteger)index{
     return tags[index];
 }
@@ -592,35 +663,37 @@ EM_BuddyListController
     return buddyArray.count;
 }
 
-- (NSString *)titleForGroupAtIndex:(NSInteger)index{
+- (BOOL)shouldExpandForGroupAtIndex:(NSInteger)index{
     NSDictionary *info = buddyArray[index];
-    return info[@"groupName"];
+    return [info[GroupExpand] boolValue];
 }
 
+- (NSString *)titleForGroupAtIndex:(NSInteger)index{
+    NSDictionary *info = buddyArray[index];
+    return info[GroupName];
+}
+
+//opposite
 - (NSInteger)numberOfRowsAtGroupIndex:(NSInteger)groupIndex{
     NSDictionary *info = buddyArray[groupIndex];
-    BOOL expand = [info[@"groupExpand"] boolValue];
-    if (expand) {
-        return [info[@"buddys"] count];
-    }else{
-        return 0;
-    }
+    return [info[GroupBuddys] count];
 }
 
 - (EM_ChatOpposite *)dataForRow:(NSInteger)rowIndex groupIndex:(NSInteger)groupIndex{
     NSMutableDictionary *info = buddyArray[groupIndex];
-    NSArray *buddys = info[@"buddys"];
+    NSArray *buddys = info[GroupBuddys];
     return buddys[rowIndex];
 }
 
 #pragma mark - EM_ChatBuddyListControllerDelegate
+//search
 - (BOOL)shouldReloadSearchForSearchString:(NSString *)searchString{
     if (searchString) {
         [searchArray removeAllObjects];
         
         for (int i = 0; i < buddyArray.count; i++) {
             NSDictionary *info = buddyArray[i];
-            NSArray *buddys = info[@"buddys"];
+            NSArray *buddys = info[GroupBuddys];
             for (EM_ChatBuddy *buddy in buddys) {
                 if ([buddy.displayName containsString:searchString]) {
                     [searchArray addObject:buddy];
@@ -642,21 +715,26 @@ EM_BuddyListController
 
 - (void)didSelectedForSearchRowAtIndex:(NSInteger)index{
     EM_ChatBuddy *buddy = searchArray[index];
-    CustomChatController *chatController = [[CustomChatController alloc]initWithOpposite:buddy];
+    UChatController *chatController = [[UChatController alloc]initWithOpposite:buddy];
     [self.navigationController pushViewController:chatController animated:YES];
 }
 
-//opposite
+//group
+- (void)didSelectedForGroupManageAtIndex:(NSInteger)groupIndex{
+    NSLog(@"分组管理%ld",groupIndex);
+}
+
 - (void)didSelectedForGroupAtIndex:(NSInteger)groupIndex{
     NSDictionary *info = buddyArray[groupIndex];
-    BOOL expand = [info[@"groupExpand"] boolValue];
-    [info setValue:@(!expand) forKey:@"groupExpand"];
+    BOOL expand = [info[GroupExpand] boolValue];
+    [info setValue:@(!expand) forKey:GroupExpand];
     [self reloadOppositeList];
 }
 
+//opposite
 - (void)didSelectedForRowAtIndex:(NSInteger)rowIndex groupIndex:(NSInteger)groupIndex{
     NSMutableDictionary *info = buddyArray[groupIndex];
-    NSArray *buddys = info[@"buddys"];
+    NSArray *buddys = info[GroupBuddys];
     EM_ChatBuddy *buddy = buddys[rowIndex];
     UChatController *chatController = [[UChatController alloc]initWithOpposite:buddy];
     [self.navigationController pushViewController:chatController animated:YES];
@@ -671,11 +749,9 @@ EM_BuddyListController
         buddy.nickName = emBuddy.username;
         buddy.remarkName = emBuddy.username;
         buddy.displayName = buddy.remarkName;
-        buddy.intro = @"[在线]最新动态";
-        
-        
+
         NSDictionary *info = buddyArray[i % 2];
-        NSMutableArray *buddys = info[@"buddys"];
+        NSMutableArray *buddys = info[GroupBuddys];
         
         if (![buddys containsObject:buddy]) {
             [buddys addObject:buddy];

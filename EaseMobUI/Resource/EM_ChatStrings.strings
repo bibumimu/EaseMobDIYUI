@@ -32,6 +32,10 @@ common.delete = "删除";
 common.close = "关闭";
 common.group_manage = "分组管理";
 common.group_name = "我的好友";
+common.new_buddy = "新朋友";
+common.buddy = "好友";
+common.group_room = "群组";
+common.blacklist = "黑名单";
 
 common.message = "消息";
 common.contact = "联系人";

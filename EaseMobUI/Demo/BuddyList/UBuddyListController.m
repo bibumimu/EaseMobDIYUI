@@ -12,7 +12,13 @@
 #import "EM+ChatOppositeTag.h"
 #import "EM+ChatBuddy.h"
 
+#import "EM+ChatResourcesUtils.h"
+
 #import <EaseMobSDKFull/EaseMob.h>
+
+#define GroupName           (@"groupName")
+#define GroupExpand         (@"groupExpand")
+#define GroupBuddys         (@"groupBuddys")
 
 @interface UBuddyListController ()<EM_ChatBuddyListControllerDataSource,EM_ChatBuddyListControllerDelegate,EMChatManagerDelegate>
 
@@ -22,6 +28,7 @@
 
 @implementation UBuddyListController{
     NSArray *tags;
+    NSArray *icons;
     NSMutableArray *buddyArray;
     NSMutableArray *searchArray;
 }
@@ -29,15 +36,21 @@
 - (instancetype)init{
     self = [super init];
     if (self) {
-        self.title = @"联系人";
-        tags = @[@"新朋友",@"特别关心",@"群组",@"黑名单"];
+        self.tabBarItem.image = [UIImage imageNamed:@"buddy"];
+        
+        
+        tags = @[@"新朋友",@"群组",@"讨论组",@"黑名单"];
+        icons = @[kEMChatIconBuddyNew,kEMChatIconBuddyGroup,kEMChatIconBuddyRoom,kEMChatIconBuddyBlacklist];
         
         buddyArray = [[NSMutableArray alloc]init];
         for (int i = 0; i < 2; i++) {
-            [buddyArray addObject:[[NSMutableDictionary alloc]initWithDictionary:@{@"groupName":[NSString stringWithFormat:@"我的好友%d",i + 1],
-                                                                                   @"groupExpand":@(NO),
-                                                                                   @"buddys":[[NSMutableArray alloc]init]}]];
+            [buddyArray addObject:[[NSMutableDictionary alloc]initWithDictionary:@{
+                                                                                   GroupName : [NSString stringWithFormat:@"我的好友%d",i+1],
+                                                                                   GroupExpand : @(NO),
+                                                                                   GroupBuddys : [[NSMutableArray alloc]init]
+                                                                                   }]];
         }
+        
         searchArray = [[NSMutableArray alloc]init];
         self.dataSource = self;
         self.delegate = self;
@@ -78,48 +91,60 @@
     return searchArray[index];
 }
 
+
+//tags
 - (NSInteger)numberOfTags{
     return tags.count;
+}
+
+- (UIFont *)fontForTagAtIndex:(NSInteger)index{
+    return [EM_ChatResourcesUtils iconFontWithSize:30];
 }
 
 - (NSString *)titleForTagAtIndex:(NSInteger)index{
     return tags[index];
 }
 
-//opposite
+- (NSString *)iconForTagAtIndex:(NSInteger)index{
+    return icons[index];
+}
+
+//group
 - (NSInteger)numberOfGroups{
     return buddyArray.count;
 }
 
-- (NSString *)titleForGroupAtIndex:(NSInteger)index{
+- (BOOL)shouldExpandForGroupAtIndex:(NSInteger)index{
     NSDictionary *info = buddyArray[index];
-    return info[@"groupName"];
+    return [info[GroupExpand] boolValue];
 }
 
+- (NSString *)titleForGroupAtIndex:(NSInteger)index{
+    NSDictionary *info = buddyArray[index];
+    return info[GroupName];
+}
+
+//opposite
 - (NSInteger)numberOfRowsAtGroupIndex:(NSInteger)groupIndex{
     NSDictionary *info = buddyArray[groupIndex];
-    BOOL expand = [info[@"groupExpand"] boolValue];
-    if (expand) {
-        return [info[@"buddys"] count];
-    }else{
-        return 0;
-    }
+    return [info[GroupBuddys] count];
 }
 
 - (EM_ChatOpposite *)dataForRow:(NSInteger)rowIndex groupIndex:(NSInteger)groupIndex{
     NSMutableDictionary *info = buddyArray[groupIndex];
-    NSArray *buddys = info[@"buddys"];
+    NSArray *buddys = info[GroupBuddys];
     return buddys[rowIndex];
 }
 
 #pragma mark - EM_ChatBuddyListControllerDelegate
+//search
 - (BOOL)shouldReloadSearchForSearchString:(NSString *)searchString{
     if (searchString) {
         [searchArray removeAllObjects];
         
         for (int i = 0; i < buddyArray.count; i++) {
             NSDictionary *info = buddyArray[i];
-            NSArray *buddys = info[@"buddys"];
+            NSArray *buddys = info[GroupBuddys];
             for (EM_ChatBuddy *buddy in buddys) {
                 if ([buddy.displayName containsString:searchString]) {
                     [searchArray addObject:buddy];
@@ -145,21 +170,22 @@
     [self.navigationController pushViewController:chatController animated:YES];
 }
 
-//opposite
+//group
 - (void)didSelectedForGroupManageAtIndex:(NSInteger)groupIndex{
     NSLog(@"分组管理%ld",groupIndex);
 }
 
 - (void)didSelectedForGroupAtIndex:(NSInteger)groupIndex{
     NSDictionary *info = buddyArray[groupIndex];
-    BOOL expand = [info[@"groupExpand"] boolValue];
-    [info setValue:@(!expand) forKey:@"groupExpand"];
+    BOOL expand = [info[GroupExpand] boolValue];
+    [info setValue:@(!expand) forKey:GroupExpand];
     [self reloadOppositeList];
 }
 
+//opposite
 - (void)didSelectedForRowAtIndex:(NSInteger)rowIndex groupIndex:(NSInteger)groupIndex{
     NSMutableDictionary *info = buddyArray[groupIndex];
-    NSArray *buddys = info[@"buddys"];
+    NSArray *buddys = info[GroupBuddys];
     EM_ChatBuddy *buddy = buddys[rowIndex];
     UChatController *chatController = [[UChatController alloc]initWithOpposite:buddy];
     [self.navigationController pushViewController:chatController animated:YES];
@@ -174,11 +200,9 @@
         buddy.nickName = emBuddy.username;
         buddy.remarkName = emBuddy.username;
         buddy.displayName = buddy.remarkName;
-        buddy.intro = @"[在线]最新动态";
-        
-        
+
         NSDictionary *info = buddyArray[i % 2];
-        NSMutableArray *buddys = info[@"buddys"];
+        NSMutableArray *buddys = info[GroupBuddys];
         
         if (![buddys containsObject:buddy]) {
             [buddys addObject:buddy];

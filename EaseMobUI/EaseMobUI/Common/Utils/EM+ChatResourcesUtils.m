@@ -46,6 +46,14 @@ NSString * const kEMChatIconCallConnect = @"\ue614";
 NSString * const kEMChatIconCallSilence = @"\ue615";
 NSString * const kEMChatIconCallExpand = @"\ue616";
 
+NSString * const kEMChatIconBuddyShrink = @"\ue617";
+NSString * const kEMChatIconBuddyStretch = @"\ue618";
+
+NSString * const kEMChatIconBuddyNew = @"\ue619";
+NSString * const kEMChatIconBuddyGroup = @"\ue61a";
+NSString * const kEMChatIconBuddyRoom = @"\ue61b";
+NSString * const kEMChatIconBuddyBlacklist = @"\ue61c";
+
 + (NSString *)stringWithName:(NSString *)name{
     return [self stringWithName:name table:@"EM_ChatStrings"];
 }

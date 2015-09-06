@@ -213,13 +213,8 @@
     }
     
     EM_ConversationCell *cell = [tableView dequeueReusableCellWithIdentifier:cellId];
-    
-    if (self.delegate && [self.delegate respondsToSelector:@selector(viewForConversationRowWithConversation:reuseView:reuseIdentifier:)]) {
-        cell = [self.delegate viewForConversationRowWithConversation:conversation reuseView:cell reuseIdentifier:cellId];
-    }else{
-        if (!cell) {
-            cell = [[EM_ConversationCell alloc]initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:cellId];
-        }
+    if (!cell) {
+        cell = [[EM_ConversationCell alloc]initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:cellId];
     }
     
     cell.indexPath = indexPath;

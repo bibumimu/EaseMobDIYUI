@@ -11,7 +11,7 @@
 #import "UBuddyListController.h"
 #import "USettingsController.h"
 
-@interface MainController ()<UITabBarControllerDelegate>
+@interface MainController ()
 
 @property (nonatomic, strong) NSArray *controllers;
 
@@ -26,7 +26,7 @@
 - (instancetype)init{
     self = [super init];
     if (self) {
-        self.delegate = self;
+
     }
     return self;
 }
@@ -45,15 +45,6 @@
     
     self.controllers = @[narChatController,narBuddysController,narSettingsController];
     self.viewControllers = self.controllers;
-}
-
-#pragma mark - UITabBarControllerDelegate
-- (BOOL)tabBarController:(UITabBarController *)tabBarController shouldSelectViewController:(UIViewController *)viewController {
-    return YES;
-}
-
-- (void)tabBarController:(UITabBarController *)tabBarController didSelectViewController:(UIViewController *)viewController{
-
 }
 
 @end
