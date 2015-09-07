@@ -81,7 +81,7 @@
         [self.contentView addSubview:_tailView];
         
         _bubbleView = [[EM_ChatMessageBubble alloc]initWithBodyClass:bodyClass withExtendClass:extendClass];
-        _bubbleView.layer.cornerRadius = 4;
+        _bubbleView.layer.cornerRadius = 6;
         _bubbleView.layer.masksToBounds = YES;
         _bubbleView.bodyView.delegate = self;
         _bubbleView.extendView.delegate = self;

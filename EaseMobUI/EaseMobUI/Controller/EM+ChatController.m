@@ -82,9 +82,6 @@ EMDeviceManagerDelegate>
 @property (nonatomic,strong) EM_ChatTableView *chatTableView;
 @property (nonatomic,strong) EM_ChatToolBar *chatToolBarView;
 
-@property (nonatomic, strong) EM_ChatOpposite *opposite;
-@property (nonatomic, strong) EM_ChatUser *user;
-
 @end
 
 @implementation EM_ChatController{

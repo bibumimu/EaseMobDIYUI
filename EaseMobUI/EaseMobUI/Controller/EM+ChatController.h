@@ -10,6 +10,7 @@
 #import "EM+ChatUIConfig.h"
 #import "EM+ChatMessageModel.h"
 @class EM_ChatOpposite;
+@class EM_ChatUser;
 
 @protocol EM_ChatControllerDelegate;
 
@@ -20,6 +21,8 @@
  */
 @property (nonatomic, strong, readonly) EMConversation *conversation;
 
+@property (nonatomic, strong, readonly) EM_ChatOpposite *opposite;
+@property (nonatomic, strong, readonly) EM_ChatUser *user;
 @property (nonatomic,weak) id<EM_ChatControllerDelegate> delegate;
 
 - (instancetype)initWithOpposite:(EM_ChatOpposite *)opposite;
