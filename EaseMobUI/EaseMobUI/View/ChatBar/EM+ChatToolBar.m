@@ -28,6 +28,8 @@
 - (instancetype)initWithConfig:(EM_ChatUIConfig *)config{
     self = [super init];
     if (self) {
+        
+        _shouldReceiveKeyboardNotification = YES;
         _config = config;
         
         _inputToolView = [[EM_ChatInputTool alloc]initWithConfig:_config];
@@ -96,6 +98,9 @@
 #pragma mark - keyboard action
 #pragma mark -
 - (void)keyboardWillShow:(NSNotification*)notification{
+    if (!_shouldReceiveKeyboardNotification) {
+        return;
+    }
     [_moreToolView dismissTool:YES];
     
     _keyboardRect = [[[notification userInfo] objectForKey:_UIKeyboardFrameEndUserInfoKey] CGRectValue];
@@ -130,6 +135,9 @@
 }
 
 - (void)keyboardWillHide:(NSNotification*)notification{
+    if (!_shouldReceiveKeyboardNotification) {
+        return;
+    }
     _keyboardRect = CGRectZero;
     _keyboardVisible = NO;
     

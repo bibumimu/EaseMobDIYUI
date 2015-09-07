@@ -108,6 +108,7 @@ wifi.server_file_delete_failure = "文件删除失败:%@";
 
 hint.may_phone = "[%@]这可能是一个电话号码，你可以";
 hint.may_link = "[%@]这可能是一个网址，你可以";
+hint.extrude = "您已被踢出"
 
 error.device.not_support_photo_library = "设备不支持图片库";
 error.device.not_support_camera = "设备不支持相机";

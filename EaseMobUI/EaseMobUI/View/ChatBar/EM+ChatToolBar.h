@@ -58,6 +58,11 @@
  */
 @property (nonatomic, strong) EM_ChatTableView *chatTableView;
 
+/**
+ *  是否接收键盘变化通知
+ */
+@property (nonatomic, assign) BOOL shouldReceiveKeyboardNotification;
+
 - (instancetype)initWithConfig:(EM_ChatUIConfig *)config;
 
 /**

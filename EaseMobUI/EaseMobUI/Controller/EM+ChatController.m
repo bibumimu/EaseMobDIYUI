@@ -228,6 +228,16 @@ EMDeviceManagerDelegate>
     [self queryEditor];
 }
 
+- (void)viewDidAppear:(BOOL)animated{
+    [super viewDidAppear:animated];
+    _chatToolBarView.shouldReceiveKeyboardNotification = YES;
+}
+
+- (void)viewDidDisappear:(BOOL)animated{
+    [super viewDidDisappear:animated];
+    _chatToolBarView.shouldReceiveKeyboardNotification = NO;
+}
+
 - (void)didReceiveMemoryWarning{
     [self saveEditor];
 }
@@ -979,6 +989,10 @@ EMDeviceManagerDelegate>
     if (self.conversation.conversationType != eConversationTypeGroupChat){
         return;
     }
+    
+    [self showHint:[EM_ChatResourcesUtils stringWithName:@"hint.extrude"]];
+    [self.navigationController popViewControllerAnimated:YES];
+    [[EaseMob sharedInstance].chatManager removeConversationsByChatters:@[self.conversation.chatter] deleteMessages:NO append2Chat:YES];
 }
 
 - (void)groupDidUpdateInfo:(EMGroup *)group error:(EMError *)error{
@@ -1008,6 +1022,9 @@ EMDeviceManagerDelegate>
     if (self.conversation.conversationType != eConversationTypeChatRoom){
         return;
     }
+    [self showHint:[EM_ChatResourcesUtils stringWithName:@"hint.extrude"]];
+    [self.navigationController popViewControllerAnimated:YES];
+    [[EaseMob sharedInstance].chatManager removeConversationsByChatters:@[self.conversation.chatter] deleteMessages:NO append2Chat:YES];
 }
 
 @end
