@@ -11,8 +11,8 @@
 #import "EM+ChatGroup.h"
 #import "EM+ChatRoom.h"
 @class UIApplication;
-@class EM_ChatMessageModel;
 @class UILocalNotification;
+@class EM_ChatMessageModel;
 
 @protocol EM_ChatUserDelegate;
 @protocol EM_ChatOppositeDelegate;
@@ -42,6 +42,11 @@ extern NSString * const kEMCallTypeVideo;
  *  聊天数据代理
  */
 @property (nonatomic, weak) id<EM_ChatOppositeDelegate> oppositeDelegate;
+
+/**
+ *  通知代理
+ */
+@property (nonatomic, weak) id<EM_ChatNotificationDelegate> notificationDelegate;
 
 + (instancetype)sharedInstance;
 
@@ -96,9 +101,6 @@ extern NSString * const kEMCallTypeVideo;
 
 @protocol EM_ChatOppositeDelegate <NSObject>
 
-@required
-@optional
-
 /**
  *  根据chatter返回好友信息
  *
@@ -149,9 +151,6 @@ extern NSString * const kEMCallTypeVideo;
 @end
 
 @protocol EM_ChatNotificationDelegate <NSObject>
-
-@required
-@optional
 
 /**
  *  本地消息通知显示内容
