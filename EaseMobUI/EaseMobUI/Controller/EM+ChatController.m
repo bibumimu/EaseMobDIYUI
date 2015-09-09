@@ -30,6 +30,9 @@
 #import "UIColor+Hex.h"
 #import "DDLog.h"
 
+//
+#import "EMCDDeviceManager+ProximitySensor.h"
+
 #import <MJRefresh/MJRefresh.h>
 #import <MBProgressHUD/MBProgressHUD.h>
 #import <MediaPlayer/MediaPlayer.h>
@@ -69,7 +72,8 @@ EM_ExplorerControllerDelegate,
 EM_ChatMessageManagerDelegate,
 EMChatManagerDelegate,
 IEMChatProgressDelegate,
-EMDeviceManagerDelegate>
+EMDeviceManagerDelegate,
+EMCDDeviceManagerDelegate>
 
 @property (nonatomic, strong) NSMutableArray *dataSource;
 @property (nonatomic, strong) NSMutableArray *imageDataArray;
@@ -220,6 +224,7 @@ EMDeviceManagerDelegate>
     
     [[EaseMob sharedInstance].chatManager removeDelegate:self];
     [[EaseMob sharedInstance].chatManager addDelegate:self delegateQueue:nil];
+    [EMCDDeviceManager sharedInstance].delegate = self;
     
     _messageQueue = dispatch_queue_create("EaseMob", NULL);
     
@@ -800,12 +805,12 @@ EMDeviceManagerDelegate>
 
 #pragma mark - EM_ExplorerControllerDelegate
 - (void)didFileSelected:(NSArray *)files{
-    for (NSURL *url in files) {
+    for (NSString *path in files) {
         EM_ChatMessageExtend *extend = nil;
         if(self.delegate && [self.delegate respondsToSelector:@selector(extendForMessage:messageType:)]){
-            extend = [self.delegate extendForMessage:url messageType:eMessageBodyType_File];
+            extend = [self.delegate extendForMessage:path messageType:eMessageBodyType_File];
         }
-        [self sendMessage:[EM_ChatMessageModel fromFile:url.path name:url.path.lastPathComponent conversation:self.conversation extend:extend]];
+        [self sendMessage:[EM_ChatMessageModel fromFile:path name:path.lastPathComponent conversation:self.conversation extend:extend]];
     }
 }
 
@@ -1025,6 +1030,17 @@ EMDeviceManagerDelegate>
     [self showHint:[EM_ChatResourcesUtils stringWithName:@"hint.extrude"]];
     [self.navigationController popViewControllerAnimated:YES];
     [[EaseMob sharedInstance].chatManager removeConversationsByChatters:@[self.conversation.chatter] deleteMessages:NO append2Chat:YES];
+}
+
+#pragma mark - EMCDDeviceManagerDelegate
+- (void)proximitySensorChanged:(BOOL)isCloseToUser{
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+    if (isCloseToUser){
+        [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
+    } else {
+        [audioSession setCategory:AVAudioSessionCategoryPlayback error:nil];
+    }
+    [audioSession setActive:YES error:nil];
 }
 
 @end

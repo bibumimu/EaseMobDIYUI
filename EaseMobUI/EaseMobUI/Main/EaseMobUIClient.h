@@ -15,6 +15,7 @@
 
 @protocol EM_ChatUserDelegate;
 @protocol EM_ChatOppositeDelegate;
+@protocol EM_ChatNotificationDelegate;
 
 extern NSString * const kEMNotificationCallActionIn;
 extern NSString * const kEMNotificationCallActionOut;
@@ -60,16 +61,16 @@ extern NSString * const kEMCallTypeVideo;
 @protocol EM_ChatUserDelegate <NSObject>
 
 @required
+@optional
 
 - (EM_ChatUser *)userForEMChat;
-
-@optional
 
 @end
 
 @protocol EM_ChatOppositeDelegate <NSObject>
 
 @required
+@optional
 
 /**
  *  根据chatter返回好友信息
@@ -118,6 +119,21 @@ extern NSString * const kEMCallTypeVideo;
  */
 - (EM_ChatBuddy *)buddyInfoWithChatter:(NSString *)chatter inRoom:(EM_ChatRoom *)room;
 
+@end
+
+@protocol EM_ChatNotificationDelegate <NSObject>
+
+@required
 @optional
+
+/**
+ *  本地消息通知显示内容
+ *  只有在消息有用户自己的自定义扩展的时候才会调用
+ *
+ *  @param message
+ *
+ *  @return 默认“发来一个新消息”，默认自动在前面加上消息发送者的显示名称
+ */
+- (NSString *)alertBodyWithMessage:(EM_ChatMessageModel *)message;
 
 @end
