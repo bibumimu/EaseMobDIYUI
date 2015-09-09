@@ -12,10 +12,13 @@
 #import "EM+ChatResourcesUtils.h"
 #import "EM+Common.h"
 #import "EM+ChatUIConfig.h"
+#import "EM+ChatMessageModel.h"
 
 #import "EM+CallController.h"
 #import "UIViewController+HUD.h"
+#import "EMCDDeviceManager.h"
 
+#import <UIKit/UIKit.h>
 #import <EaseMobSDKFull/EaseMob.h>
 #import <AVFoundation/AVFoundation.h>
 
@@ -208,22 +211,169 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
     [[EaseMob sharedInstance].callManager addDelegate:self delegateQueue:nil];
 }
 
+- (void)registerForRemoteNotificationsWithApplication:(UIApplication *)application{
+    if ([application respondsToSelector:@selector(registerForRemoteNotifications)]) {
+        [application registerForRemoteNotifications];
+        UIUserNotificationType notificationTypes = UIUserNotificationTypeBadge |
+        UIUserNotificationTypeSound |
+        UIUserNotificationTypeAlert;
+        UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:notificationTypes categories:nil];
+        [application registerUserNotificationSettings:settings];
+    }else{
+        UIRemoteNotificationType notificationTypes = UIRemoteNotificationTypeBadge |
+        UIRemoteNotificationTypeSound |
+        UIRemoteNotificationTypeAlert;
+        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:notificationTypes];
+    }
+}
+
 #pragma mark - application
-- (void)applicationDidEnterBackground:(UIApplication *)application {
-    [[EaseMob sharedInstance] applicationDidEnterBackground:application];
+- (void)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions{
+    [[EaseMob sharedInstance] application:application didFinishLaunchingWithOptions:launchOptions];
+}
+
+//application
+- (void)applicationProtectedDataWillBecomeUnavailable:(UIApplication *)application {
+    [[EaseMob sharedInstance] applicationProtectedDataWillBecomeUnavailable:application];
+}
+
+- (void)applicationProtectedDataDidBecomeAvailable:(UIApplication *)application {
+    [[EaseMob sharedInstance] applicationProtectedDataDidBecomeAvailable:application];
+}
+
+- (void)applicationWillResignActive:(UIApplication *)application {
+    [[EaseMob sharedInstance] applicationWillResignActive:application];
+}
+
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+    [[EaseMob sharedInstance] applicationDidBecomeActive:application];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
     [[EaseMob sharedInstance] applicationWillEnterForeground:application];
 }
 
+- (void)applicationDidEnterBackground:(UIApplication *)application {
+    [[EaseMob sharedInstance] applicationDidEnterBackground:application];
+}
+
+- (void)applicationDidReceiveMemoryWarning:(UIApplication *)application {
+    [[EaseMob sharedInstance] applicationDidReceiveMemoryWarning:application];
+}
+
 - (void)applicationWillTerminate:(UIApplication *)application {
     [[EaseMob sharedInstance] applicationWillTerminate:application];
+}
+
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken{
+    [[EaseMob sharedInstance] application:application didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
+}
+
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error{
+    [[EaseMob sharedInstance] application:application didFailToRegisterForRemoteNotificationsWithError:error];
+}
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo{
     
 }
 
+- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification{
+    
+}
+
+
 #pragma mark - EMChatManagerDelegate
 #pragma mark -
+#pragma mark - EMChatManagerChatDelegate
+- (void)didReceiveMessage:(EMMessage *)message{
+    if ([UIApplication sharedApplication].applicationState != UIApplicationStateBackground) {
+        [[EMCDDeviceManager sharedInstance] playNewMessageSound];//声音
+#if !TARGET_IPHONE_SIMULATOR
+        [[EMCDDeviceManager sharedInstance] playVibration];//震动
+#endif
+    }else{
+        
+        NSString *alertBody;
+        
+        EM_ChatMessageModel *model = [EM_ChatMessageModel fromEMMessage:message];
+        EMPushNotificationOptions *options = [[EaseMob sharedInstance].chatManager pushNotificationOptions];
+        if (options.displayStyle == ePushNotificationDisplayStyle_messageSummary) {
+            if ([model.extend.className isEqualToString:NSStringFromClass([EM_ChatMessageExtend class])]) {
+                switch (model.messageBody.messageBodyType) {
+                    case eMessageBodyType_Text:{
+                        EMTextMessageBody *body = (EMTextMessageBody *)model.messageBody;
+                        alertBody = body.text;
+                    }
+                        break;
+                    case eMessageBodyType_Image:{
+                        alertBody = [EM_ChatResourcesUtils stringWithName:@"notification.image_display"];
+                    }
+                        break;
+                    case eMessageBodyType_Location:{
+                        alertBody = [EM_ChatResourcesUtils stringWithName:@"notification.location_display"];
+                    }
+                        break;
+                    case eMessageBodyType_Voice:{
+                        alertBody = [EM_ChatResourcesUtils stringWithName:@"notification.voice_display"];
+                    }
+                        break;
+                    default:{
+                        alertBody = [EM_ChatResourcesUtils stringWithName:@"notification.other_display"];
+                    }
+                        break;
+                }
+            }else{
+                if (self.notificationDelegate && [self.notificationDelegate respondsToSelector:@selector(alertBodyWithMessage:)]) {
+                    alertBody = [self.notificationDelegate alertBodyWithMessage:model];
+                }else{
+                    alertBody = [EM_ChatResourcesUtils stringWithName:@"notification.other_display"];
+                }
+            }
+            
+            NSString *displayTitle;
+            if (model.message.messageType == eMessageTypeGroupChat) {
+                if (self.oppositeDelegate && [self.oppositeDelegate respondsToSelector:@selector(groupInfoWithChatter:)]) {
+                    EM_ChatGroup *group = [self.oppositeDelegate groupInfoWithChatter:model.message.conversationChatter];
+                    if (group && [self.oppositeDelegate respondsToSelector:@selector(buddyInfoWithChatter:inGroup:)]) {
+                        EM_ChatBuddy *buddy = [self.oppositeDelegate buddyInfoWithChatter:model.message.from inGroup:group];
+                        displayTitle = [NSString stringWithFormat:@"%@(%@)",group.displayName,buddy.displayName];
+                    }
+                }
+            }else if (model.message.messageType == eMessageTypeChatRoom){
+                if (self.oppositeDelegate && [self.oppositeDelegate respondsToSelector:@selector(roomInfoWithChatter:)]) {
+                    EM_ChatRoom *room = [self.oppositeDelegate roomInfoWithChatter:model.message.conversationChatter];
+                    if (room && [self.oppositeDelegate respondsToSelector:@selector(buddyInfoWithChatter:inRoom:)]) {
+                        EM_ChatBuddy *buddy = [self.oppositeDelegate buddyInfoWithChatter:model.message.from inRoom:room];
+                        displayTitle = [NSString stringWithFormat:@"%@(%@)",room.displayName,buddy.displayName];
+                    }
+                }
+            }else{
+                if (self.oppositeDelegate && [self.oppositeDelegate respondsToSelector:@selector(buddyInfoWithChatter:)]) {
+                    EM_ChatBuddy *buddy = [self.oppositeDelegate buddyInfoWithChatter:model.message.from];
+                    displayTitle = buddy.displayName;
+                }
+            }
+            
+            if (!displayTitle || displayTitle.length == 0) {
+                displayTitle = model.message.from;
+            }
+            alertBody = [NSString stringWithFormat:@"%@:%@",displayTitle,alertBody];
+        }else{
+            alertBody = [EM_ChatResourcesUtils stringWithName:@"notification.have_new_message"];
+        }
+        
+        UILocalNotification *notification = [[UILocalNotification alloc] init];
+        notification.fireDate = [NSDate date];
+        notification.alertBody = alertBody;
+        notification.timeZone = [NSTimeZone defaultTimeZone];
+        notification.soundName = UILocalNotificationDefaultSoundName;
+        [[UIApplication sharedApplication] scheduleLocalNotification:notification];
+#if !TARGET_IPHONE_SIMULATOR
+        [[EMCDDeviceManager sharedInstance] playVibration];//震动
+#endif
+    }
+}
+
 #pragma mark - EMChatManagerLoginDelegate
 #pragma mark - EMChatManagerEncryptionDelegate
 #pragma mark - EMChatManagerBuddyDelegate
@@ -254,6 +404,29 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
                 [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallActionIn object:callSession userInfo:nil];
             }else{
                 
+                NSString *displayName = callSession.sessionChatter;
+                if (self.oppositeDelegate && [self.oppositeDelegate respondsToSelector:@selector(buddyInfoWithChatter:)]) {
+                    EM_ChatBuddy *buddy = [self.oppositeDelegate buddyInfoWithChatter:callSession.sessionChatter];
+                    displayName = buddy.displayName;
+                }
+                
+                NSString *alertBody;
+                
+                if (callSession.type == eCallSessionTypeAudio) {
+                    alertBody = [NSString stringWithFormat:[EM_ChatResourcesUtils stringWithName:@"notification.call_audio"],displayName];
+                }else if (callSession.type == eCallSessionTypeVideo){
+                    alertBody = [NSString stringWithFormat:[EM_ChatResourcesUtils stringWithName:@"notification.call_video"],displayName];
+                }else{
+                    alertBody = [NSString stringWithFormat:[EM_ChatResourcesUtils stringWithName:@"notification.call"],displayName];
+                }
+                
+                UILocalNotification *notification = [[UILocalNotification alloc] init];
+                notification.fireDate = [NSDate date];
+                notification.alertBody = alertBody;
+                notification.timeZone = [NSTimeZone defaultTimeZone];
+                notification.soundName = UILocalNotificationDefaultSoundName;
+                [[UIApplication sharedApplication] scheduleLocalNotification:notification];
+                [[EMCDDeviceManager sharedInstance] playVibration];//震动
             }
         }
     }

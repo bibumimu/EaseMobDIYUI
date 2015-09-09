@@ -6,12 +6,12 @@
 //  Copyright (c) 2015年 周玉震. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
-
 #import "EM+ChatUser.h"
 #import "EM+ChatBuddy.h"
 #import "EM+ChatGroup.h"
 #import "EM+ChatRoom.h"
+@class UIApplication;
+@class UILocalNotification;
 @class EM_ChatMessageModel;
 
 @protocol EM_ChatUserDelegate;
@@ -43,7 +43,10 @@ extern NSString * const kEMCallTypeVideo;
  */
 @property (nonatomic, weak) id<EM_ChatOppositeDelegate> oppositeDelegate;
 
-
+/**
+ *  通知代理
+ */
+@property (nonatomic, weak) id<EM_ChatNotificationDelegate> notificationDelegate;
 
 + (instancetype)sharedInstance;
 
@@ -51,11 +54,39 @@ extern NSString * const kEMCallTypeVideo;
 
 + (BOOL)canVideo;
 
-- (void)applicationDidEnterBackground:(UIApplication *)application;
+- (void)registerForRemoteNotificationsWithApplication:(UIApplication *)application;
+
+/**
+ *  应用启动完毕
+ *
+ *  @param application
+ *  @param launchOptions 
+ */
+- (void)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions;
+
+- (void)applicationProtectedDataWillBecomeUnavailable:(UIApplication *)application;
+
+- (void)applicationProtectedDataDidBecomeAvailable:(UIApplication *)application;
+
+- (void)applicationWillResignActive:(UIApplication *)application;
+
+- (void)applicationDidBecomeActive:(UIApplication *)application;
 
 - (void)applicationWillEnterForeground:(UIApplication *)application;
 
+- (void)applicationDidEnterBackground:(UIApplication *)application;
+
+- (void)applicationDidReceiveMemoryWarning:(UIApplication *)application;
+
 - (void)applicationWillTerminate:(UIApplication *)application;
+
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken;
+
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error;
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo;
+
+- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification;
 
 @end
 
@@ -69,9 +100,6 @@ extern NSString * const kEMCallTypeVideo;
 @end
 
 @protocol EM_ChatOppositeDelegate <NSObject>
-
-@required
-@optional
 
 /**
  *  根据chatter返回好友信息
@@ -123,9 +151,6 @@ extern NSString * const kEMCallTypeVideo;
 @end
 
 @protocol EM_ChatNotificationDelegate <NSObject>
-
-@required
-@optional
 
 /**
  *  本地消息通知显示内容

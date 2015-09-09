@@ -110,6 +110,15 @@ hint.may_phone = "[%@]这可能是一个电话号码，你可以";
 hint.may_link = "[%@]这可能是一个网址，你可以";
 hint.extrude = "您已被踢出";
 
+notification.image_display = "发来了一张图片";
+notification.location_display = "共享了一个位置";
+notification.voice_display = "发来了一段语音";
+notification.other_display = "发来了一个新消息";
+notification.have_new_message = "您有一条新消息";
+notification.call_audio = "%@要和您进行语音通话...";
+notification.call_video = "%@要和您进行视频通话...";
+notification.call = "%@要和您进行通话...";
+
 error.device.not_support_photo_library = "设备不支持图片库";
 error.device.not_support_camera = "设备不支持相机";
 error.record.too_short = "录音时间太短";
