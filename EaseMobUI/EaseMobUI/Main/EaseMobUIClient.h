@@ -12,6 +12,7 @@
 #import "EM+ChatBuddy.h"
 #import "EM+ChatGroup.h"
 #import "EM+ChatRoom.h"
+@class EM_ChatMessageModel;
 
 @protocol EM_ChatUserDelegate;
 @protocol EM_ChatOppositeDelegate;

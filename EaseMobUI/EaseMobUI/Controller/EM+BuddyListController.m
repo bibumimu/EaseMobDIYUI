@@ -60,7 +60,7 @@ UICollectionViewDelegateFlowLayout>
     _tableView.contentInset = UIEdgeInsetsMake(self.offestY > 0 ? self.offestY : 0, 0, 0, 0);
     _tableView.tapDelegate = self;
     
-    MJRefreshGifHeader *header = [MJRefreshGifHeader headerWithRefreshingTarget:self refreshingAction:@selector(pulldownLoad)];
+    MJRefreshGifHeader *header = [MJRefreshGifHeader headerWithRefreshingTarget:self refreshingAction:@selector(didBeginRefresh)];
     _tableView.header = header;
     
     [self.view addSubview:_tableView];
@@ -79,10 +79,6 @@ UICollectionViewDelegateFlowLayout>
 - (void)viewWillDisappear:(BOOL)animated{
     [super viewWillDisappear:animated];
     [_searchController setActive:NO];
-}
-
-- (void)pulldownLoad{
-    [_tableView.header endRefreshing];
 }
 
 - (void)reloadTagBar{
@@ -146,10 +142,11 @@ UICollectionViewDelegateFlowLayout>
 - (void)didBeginRefresh{
     if (self.delegate && [self.delegate respondsToSelector:@selector(didStartRefresh)]) {
         [self.delegate didStartRefresh];
+    }else{
+        //刷新数据
+        [self endRefresh];
+        [self reloadOppositeList];
     }
-    //刷新数据
-    [self reloadOppositeList];
-    [self endRefresh];
 }
 
 #pragma mark - UISearchDisplayDelegate
