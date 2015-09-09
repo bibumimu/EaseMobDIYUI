@@ -16,6 +16,7 @@
 #import "EM+CallController.h"
 #import "UIViewController+HUD.h"
 
+#import <UIKit/UIKit.h>
 #import <EaseMobSDKFull/EaseMob.h>
 #import <AVFoundation/AVFoundation.h>
 
@@ -208,19 +209,76 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
     [[EaseMob sharedInstance].callManager addDelegate:self delegateQueue:nil];
 }
 
+- (void)registerForRemoteNotificationsWithApplication:(UIApplication *)application{
+    if ([application respondsToSelector:@selector(registerForRemoteNotifications)]) {
+        [application registerForRemoteNotifications];
+        UIUserNotificationType notificationTypes = UIUserNotificationTypeBadge |
+        UIUserNotificationTypeSound |
+        UIUserNotificationTypeAlert;
+        UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:notificationTypes categories:nil];
+        [application registerUserNotificationSettings:settings];
+    }else{
+        UIRemoteNotificationType notificationTypes = UIRemoteNotificationTypeBadge |
+        UIRemoteNotificationTypeSound |
+        UIRemoteNotificationTypeAlert;
+        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:notificationTypes];
+    }
+}
+
 #pragma mark - application
-- (void)applicationDidEnterBackground:(UIApplication *)application {
-    [[EaseMob sharedInstance] applicationDidEnterBackground:application];
+- (void)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions{
+    [[EaseMob sharedInstance] application:application didFinishLaunchingWithOptions:launchOptions];
+}
+
+//application
+- (void)applicationProtectedDataWillBecomeUnavailable:(UIApplication *)application {
+    [[EaseMob sharedInstance] applicationProtectedDataWillBecomeUnavailable:application];
+}
+
+- (void)applicationProtectedDataDidBecomeAvailable:(UIApplication *)application {
+    [[EaseMob sharedInstance] applicationProtectedDataDidBecomeAvailable:application];
+}
+
+- (void)applicationWillResignActive:(UIApplication *)application {
+    [[EaseMob sharedInstance] applicationWillResignActive:application];
+}
+
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+    [[EaseMob sharedInstance] applicationDidBecomeActive:application];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
     [[EaseMob sharedInstance] applicationWillEnterForeground:application];
 }
 
+- (void)applicationDidEnterBackground:(UIApplication *)application {
+    [[EaseMob sharedInstance] applicationDidEnterBackground:application];
+}
+
+- (void)applicationDidReceiveMemoryWarning:(UIApplication *)application {
+    [[EaseMob sharedInstance] applicationDidReceiveMemoryWarning:application];
+}
+
 - (void)applicationWillTerminate:(UIApplication *)application {
     [[EaseMob sharedInstance] applicationWillTerminate:application];
-    
 }
+
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken{
+    [[EaseMob sharedInstance] application:application didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
+}
+
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error{
+    [[EaseMob sharedInstance] application:application didFailToRegisterForRemoteNotificationsWithError:error];
+}
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo{
+
+}
+
+- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification{
+
+}
+
 
 #pragma mark - EMChatManagerDelegate
 #pragma mark -
