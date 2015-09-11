@@ -111,7 +111,6 @@
 
 /**
  *  开始下拉刷新
- *  只有在设置了dataSource才会调用
  */
 - (void)didStartRefresh;
 

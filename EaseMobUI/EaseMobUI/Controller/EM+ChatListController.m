@@ -162,7 +162,7 @@
 
 - (void)didBeginRefresh{
     //如果没有代理方法直接结束刷新,如果有则需要用户自己调用结束刷新方法
-    if (self.dataSource && self.delegate && [self.delegate respondsToSelector:@selector(didStartRefresh)]) {
+    if (self.delegate && [self.delegate respondsToSelector:@selector(didStartRefresh)]) {
         [self.delegate didStartRefresh];
     }else{
         [self reloadData];
