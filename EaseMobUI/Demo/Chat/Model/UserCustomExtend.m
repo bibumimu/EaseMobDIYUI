@@ -11,23 +11,28 @@
 
 @implementation UserCustomExtend
 
++ (NSString *)identifierForExtend{
+    return kIdentifierForCustom;
+}
+
++ (Class)viewForClass{
+    return [UserCustomExtendView class];
+}
+
++ (BOOL)showBody{
+    return YES;
+}
+
++ (BOOL)showExtend{
+    return YES;
+}
+
 - (instancetype)init{
     self = [super init];
     if(self){
         self.extendProperty = @"这是扩展属性";
-        self.viewClassName = NSStringFromClass([UserCustomExtendView class]);
     }
     return self;
-}
-
-+ (NSMutableDictionary *)keyMapping{
-    NSMutableDictionary *mapping = [super keyMapping];
-    [mapping setObject:kExtendAttributeNameExtend forKey:kExtendAttributeKeyExtend];
-    return mapping;
-}
-
-- (CGSize)extendSizeFromMaxWidth:(CGFloat)maxWidth{
-    return [self.extendProperty sizeWithAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:17]}];
 }
 
 @end

@@ -7,7 +7,11 @@
 //
 
 #import "EM+ChatMessageTextBody.h"
+
 #import "EM+ChatMessageModel.h"
+#import "EM+ChatMessageExtend.h"
+#import "EM+ChatMessageExtendCall.h"
+
 #import "EM+ChatMessageUIConfig.h"
 
 #import <TTTAttributedLabel/TTTAttributedLabel.h>
@@ -18,6 +22,34 @@
 
 @implementation EM_ChatMessageTextBody{
     TTTAttributedLabel *textLabel;
+}
+
++ (CGSize)sizeForContentWithMessage:(EM_ChatMessageModel *)message maxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config{
+    if (CGSizeEqualToSize(message.bodySize , CGSizeZero)) {
+        CGSize size;
+        
+        EMTextMessageBody *textBody = (EMTextMessageBody *)message.messageBody;
+        static float systemVersion;
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            systemVersion = [[[UIDevice currentDevice] systemVersion] floatValue];
+        });
+        
+        NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+        [paragraphStyle setLineSpacing:config.bubbleTextLineSpacing];
+        
+        size = [textBody.text boundingRectWithSize:CGSizeMake(maxWidth, 1000) options:NSStringDrawingUsesLineFragmentOrigin
+                                        attributes:@{
+                                                     NSFontAttributeName:[UIFont systemFontOfSize:config.bubbleTextFont + 1],
+                                                     NSParagraphStyleAttributeName:paragraphStyle
+                                                     }
+                                           context:nil].size;
+        size.height += config.bodyTextPadding * 2;
+        size.width += config.bodyTextPadding * 2;
+        
+        message.bodySize = size;
+    }
+    return message.bodySize;
 }
 
 - (instancetype)init{
@@ -60,7 +92,7 @@
     [super setMessage:message];
     EMTextMessageBody *textBody = (EMTextMessageBody *)message.messageBody;
     textLabel.text = textBody.text;
-    self.needTap = self.message.extend.callType;
+    self.needTap = [self.message.messageExtend.identifier isEqualToString:kIdentifierForCall];
 }
 
 #pragma mark - TTTAttributedLabelDelegate

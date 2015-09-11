@@ -9,7 +9,11 @@
 #import "EM+ChatMessageBubble.h"
 #import "EM+ChatMessageBodyView.h"
 #import "EM+ChatMessageExtendView.h"
+
 #import "EM+ChatMessageModel.h"
+#import "EM+ChatMessageExtend.h"
+#import "EM+ChatMessageExtendBody.h"
+
 #import "EM+ChatMessageUIConfig.h"
 
 @interface EM_ChatMessageBubble()
@@ -17,6 +21,19 @@
 @end
 
 @implementation EM_ChatMessageBubble
+
++ (CGSize )sizeForBubbleWithMessage:(EM_ChatMessageModel *)message maxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config{
+    if (CGSizeEqualToSize(message.bubbleSize, CGSizeZero)) {
+
+        
+        CGFloat contentMaxtWidth = maxWidth - config.bubblePadding * 2;
+        message.bodySize = [[message classForBodyView] sizeForContentWithMessage:message maxWidth:contentMaxtWidth config:config];
+        message.extendSize = [[[message.messageExtend.extendBody class] viewForClass] sizeForContentWithMessage:message maxWidth:contentMaxtWidth config:config];
+        
+        message.bubbleSize = CGSizeMake((message.bodySize.width > message.extendSize.width ? message.bodySize.width : message.extendSize.width) + config.bubblePadding * 2, message.bodySize.height + message.extendSize.height + 1 + config.bubblePadding * 2);
+    }
+    return message.bubbleSize;
+}
 
 - (instancetype)initWithBodyClass:(Class)bodyClass withExtendClass:(Class)extendClass{
     self = [super init];
@@ -40,10 +57,10 @@
     CGSize size = self.frame.size;
     _backgroundView.frame = self.bounds;
     
-    CGSize bodySize = [self.message bodySizeFormMaxWidth:size.width - self.config.bubblePadding * 2 config:self.config];
-    CGSize extendSize = [self.message extendSizeFormMaxWidth:size.width - self.config.bubblePadding * 2 config:self.config];
+    CGSize bodySize = self.message.bodySize;
+    CGSize extendSize = self.message.extendSize;
     
-    if (self.message.extend.showBody) {
+    if (self.message.messageExtend.showBody) {
         if (self.message.sender) {
             _bodyView.frame = CGRectMake(size.width - self.config.bubblePadding - bodySize.width, self.config.bubblePadding, bodySize.width, bodySize.height);
         }else{
@@ -53,7 +70,7 @@
         _bodyView.frame = CGRectZero;
     }
     
-    if (self.message.extend.showExtend) {
+    if (self.message.messageExtend.showExtend) {
         _extendView.bounds = CGRectMake(0, 0, extendSize.width, extendSize.height);
         _extendView.center = CGPointMake(size.width / 2, _bodyView.frame.origin.y + _bodyView.frame.size.height + 1 + extendSize.height / 2);
     }else{
@@ -73,8 +90,8 @@
     _bodyView.message = _message;
     _extendView.message = _message;
     
-    _bodyView.hidden = !_message.extend.showBody;
-    _extendView.hidden = !_message.extend.showExtend;
+    _bodyView.hidden = !_message.messageExtend.showBody;
+    _extendView.hidden = !_message.messageExtend.showExtend;
 }
 
 @end

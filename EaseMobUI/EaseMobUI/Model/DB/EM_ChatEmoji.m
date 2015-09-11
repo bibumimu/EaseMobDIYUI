@@ -14,8 +14,4 @@
 @dynamic calculate;
 @dynamic modify;
 
-+ (NSString *)entityForName{
-    return @"EM_ChatEmoji";
-}
-
 @end

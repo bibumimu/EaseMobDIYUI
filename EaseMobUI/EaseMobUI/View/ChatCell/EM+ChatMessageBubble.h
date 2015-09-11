@@ -21,6 +21,8 @@
 @property (nonatomic, strong, readonly) EM_ChatMessageContent *extendView;
 @property (nonatomic, strong, readonly) UIImageView *backgroundView;
 
++ (CGSize )sizeForBubbleWithMessage:(EM_ChatMessageModel *)message maxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config;
+
 - (instancetype)initWithBodyClass:(Class)bodyClass withExtendClass:(Class)extendClass;
 
 @end

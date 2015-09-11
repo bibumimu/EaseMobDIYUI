@@ -22,6 +22,20 @@
     UILabel *sizeLabel;
 }
 
++ (CGSize)sizeForContentWithMessage:(EM_ChatMessageModel *)message maxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config{
+    if (CGSizeEqualToSize(message.bodySize , CGSizeZero)) {
+        CGSize size;
+        
+        EMVideoMessageBody *videoBody = (EMVideoMessageBody *)message.messageBody;
+        size = videoBody.size;
+        size.height += config.bodyVideoPadding * 2;
+        size.width += config.bodyVideoPadding * 2;
+        
+        message.bodySize = size;
+    }
+    return message.bodySize;
+}
+
 - (instancetype)init{
     self = [super init];
     if (self) {

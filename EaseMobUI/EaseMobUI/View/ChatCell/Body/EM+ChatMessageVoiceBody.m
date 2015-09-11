@@ -7,8 +7,11 @@
 //
 
 #import "EM+ChatMessageVoiceBody.h"
-#import "EM+ChatUIConfig.h"
+
 #import "EM+ChatMessageModel.h"
+#import "EM_ChatMessage.h"
+
+#import "EM+ChatUIConfig.h"
 #import "EM+ChatResourcesUtils.h"
 #import "EM+ChatMessageUIConfig.h"
 
@@ -16,6 +19,21 @@
     UIImageView *animationView;
     UILabel *timeLabel;
     UIButton *identifyButton;
+}
+
++ (CGSize)sizeForContentWithMessage:(EM_ChatMessageModel *)message maxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config{
+    
+    if (CGSizeEqualToSize(message.bodySize , CGSizeZero)) {
+        CGSize size;
+        
+        EMVoiceMessageBody *voiceBody = (EMVoiceMessageBody *)message.messageBody;
+        size = CGSizeMake(voiceBody.duration * 4 + 44, 20);
+        size.height += config.bodyVoicePadding * 2;
+        size.width += config.bodyVoicePadding * 2;
+        
+        message.bodySize = size;
+    }
+    return message.bodySize;
 }
 
 - (instancetype)init{
@@ -85,7 +103,7 @@
                                             ]];
         animationView.image = [EM_ChatResourcesUtils cellImageWithName:@"voice_left_3"];
     }
-    if (self.message.extend.checking && !animationView.isAnimating) {
+    if (self.message.messageSign.checking && !animationView.isAnimating) {
         [animationView startAnimating];
     }else{
         [animationView stopAnimating];

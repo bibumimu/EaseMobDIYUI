@@ -19,13 +19,14 @@
 #import "EM+ChatBuddy.h"
 #import "EM+ChatGroup.h"
 #import "EM+ChatRoom.h"
+#import "EM+ChatMessageExtendCall.h"
+#import "EM_ChatConversation.h"
 
 #import "EM+ChatMessageManager.h"
 #import "EaseMobUIClient.h"
 #import "EM+Common.h"
 #import "EM+ChatResourcesUtils.h"
 #import "EM+ChatDBUtils.h"
-#import "EM_ChatConversation.h"
 
 #import "UIColor+Hex.h"
 #import "DDLog.h"
@@ -244,6 +245,7 @@ EMCDDeviceManagerDelegate>
 }
 
 - (void)didReceiveMemoryWarning{
+    [super didReceiveMemoryWarning];
     [self saveEditor];
 }
 
@@ -306,17 +308,25 @@ EMCDDeviceManagerDelegate>
 - (void)sendMessage:(EM_ChatMessageModel *)message{
     if (_dataSource.count > 0) {
         EM_ChatMessageModel *perMessage = _dataSource[_dataSource.count - 1];
-        message.extend.showTime = (message.message.timestamp - perMessage.message.timestamp) / 1000 >= 300;
+        message.messageExtend.showTime = (message.message.timestamp - perMessage.message.timestamp) / 1000 >= 300;
     }else{
-        message.extend.showTime = YES;
+        message.messageExtend.showTime = YES;
     }
+    if ((!message.messageExtend.extendAttributes || !message.messageExtend.extendBody) && self.delegate && [self.delegate respondsToSelector:@selector(extendForMessage:)]) {
+        [self.delegate extendForMessage:message];
+    }
+    message.message.ext = [message.messageExtend toDictionary];
     [[EaseMob sharedInstance].chatManager asyncSendMessage:message.message progress:self];
 }
 
 - (EM_ChatMessageModel*)formatMessage:(EMMessage *)message{
     EM_ChatMessageModel *messageModel = [EM_ChatMessageModel fromEMMessage:message];
     NSString *loginChatter = [[EaseMob sharedInstance].chatManager loginInfo][kSDKUsername];
-    messageModel.sender = [messageModel.message.from isEqualToString:loginChatter];
+    messageModel.sender = [message.from isEqualToString:loginChatter];
+    messageModel.messageSign = [[EM_ChatDBUtils shared] queryMessageWithId:message.messageId chatter:message.conversationChatter];
+    if (!messageModel.messageSign) {
+        messageModel.messageSign = [[EM_ChatDBUtils shared] insertNewMessage];
+    }
     if (messageModel.sender) {
         messageModel.displayName = _user.displayName;
         messageModel.avatar = _user.avatar;
@@ -332,8 +342,8 @@ EMCDDeviceManagerDelegate>
         }else{
             buddy = (EM_ChatBuddy *)_opposite;
         }
-        messageModel.displayName = _opposite.displayName;
-        messageModel.avatar = _opposite.avatar;
+        messageModel.displayName = buddy.displayName;
+        messageModel.avatar = buddy.avatar;
     }
     return messageModel;
 }
@@ -342,7 +352,7 @@ EMCDDeviceManagerDelegate>
     EM_ChatMessageModel *messageModel = [self formatMessage:message];
     if (_dataSource.count > 0) {
         EM_ChatMessageModel *preMessage = _dataSource[_dataSource.count - 1];
-        messageModel.extend.showTime = preMessage.message.timestamp - messageModel.message.timestamp >= 1000 * 60 * 5;
+        messageModel.messageExtend.showTime = preMessage.message.timestamp - messageModel.message.timestamp >= 1000 * 60 * 5;
     }
     [self continuousMessage:messageModel];
     
@@ -452,11 +462,7 @@ EMCDDeviceManagerDelegate>
     return shouldSend;
 }
 - (void)messageToolBar:(EM_ChatToolBar *)toolBar didSendMessagee:(NSString *)message{
-    EM_ChatMessageExtend *extend = nil;
-    if(self.delegate && [self.delegate respondsToSelector:@selector(extendForMessage:messageType:)]){
-        extend = [self.delegate extendForMessage:message messageType:eMessageBodyType_Text];
-    }
-    [self sendMessage:[EM_ChatMessageModel fromText:message conversation:self.conversation extend:extend]];
+    [self sendMessage:[EM_ChatMessageModel fromText:message conversation:self.conversation]];
 }
 
 //MoroTool
@@ -485,9 +491,9 @@ EMCDDeviceManagerDelegate>
             [self showHint:[EM_ChatResourcesUtils stringWithName:@"error.device.not_support_camera"]];
         }
     }else if ([action isEqualToString:kActionNameVoice]){
-        [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallActionOut object:nil userInfo:@{kEMCallChatter:self.conversation.chatter,kEMCallType:kEMCallTypeVoice}];
+        [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallActionOut object:nil userInfo:@{kEMCallChatter:self.conversation.chatter,kEMCallType:@(eCallSessionTypeAudio)}];
     }else if ([action isEqualToString:kActionNameVideo]){
-        [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallActionOut object:nil userInfo:@{kEMCallChatter:self.conversation.chatter,kEMCallType:kEMCallTypeVideo}];
+        [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallActionOut object:nil userInfo:@{kEMCallChatter:self.conversation.chatter,kEMCallType:@(eCallSessionTypeVideo)}];
     }else if ([action isEqualToString:kActionNameLocation]){
         
         EM_LocationController *locationController = [[EM_LocationController alloc]init];
@@ -526,11 +532,7 @@ EMCDDeviceManagerDelegate>
 }
 
 - (void)messageToolBar:(EM_ChatToolBar *)toolBar didEndRecord:(NSString *)name record:(NSString *)recordPath duration:(NSInteger)duration{
-    EM_ChatMessageExtend *extend = nil;
-    if(self.delegate && [self.delegate respondsToSelector:@selector(extendForMessage:messageType:)]){
-        extend = [self.delegate extendForMessage:recordPath messageType:eMessageBodyType_Voice];
-    }
-    [self sendMessage:[EM_ChatMessageModel fromVoice:recordPath name:name duration:duration conversation:self.conversation extend:extend]];
+    [self sendMessage:[EM_ChatMessageModel fromVoice:recordPath name:name duration:duration conversation:self.conversation]];
 }
 
 - (void)messageToolBar:(EM_ChatToolBar *)toolBar didRecordError:(NSError *)error{
@@ -572,8 +574,9 @@ EMCDDeviceManagerDelegate>
             sheet.tag = ALERT_ACTION_TAP_PHONE;
             [sheet showInView:self.view];
         }else if ([handleAction isEqualToString:HANDLE_ACTION_TEXT]){
-            if (messageModel.extend.callType) {
-                [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallActionOut object:nil userInfo:@{kEMCallChatter:self.conversation.chatter,kEMCallType:messageModel.extend.callType}];
+            if ([messageModel.messageExtend.identifier isEqualToString:kIdentifierForCall]) {
+                EM_ChatMessageExtendCall *callMessage = (EM_ChatMessageExtendCall *)messageModel.messageExtend.extendBody;
+                [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallActionOut object:nil userInfo:@{kEMCallChatter:self.conversation.chatter,kEMCallType:@(callMessage.callType)}];
             }
         }else if ([handleAction isEqualToString:HANDLE_ACTION_IMAGE]){
             NSInteger index = [_imageDataArray indexOfObject:messageModel];
@@ -584,8 +587,8 @@ EMCDDeviceManagerDelegate>
             }
         }else if ([handleAction isEqualToString:HANDLE_ACTION_VOICE]){
             [EM_ChatMessageManager defaultManager].delegate = self;
-            if (messageModel.extend.checking) {
-                messageModel.extend.checking = NO;
+            if (messageModel.messageSign.checking) {
+                messageModel.messageSign.checking = NO;
                 [[EM_ChatMessageManager defaultManager] stopVoice];
                 [_chatTableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
             }else{
@@ -611,12 +614,11 @@ EMCDDeviceManagerDelegate>
         }
         
         if (!messageModel.sender
-            && !messageModel.extend.details
+            && !messageModel.messageSign.details
             && ![handleAction isEqualToString:HANDLE_ACTION_URL]
             && ![handleAction isEqualToString:HANDLE_ACTION_PHONE]
             && ![handleAction isEqualToString:HANDLE_ACTION_TEXT]){
-            messageModel.extend.details = YES;
-            [messageModel updateExt];
+            messageModel.messageSign.details = YES;
         }
     }else if ([handleFrom isEqualToString:HANDLE_FROM_EXTEND]){
         if (self.delegate && [self.delegate respondsToSelector:@selector(didExtendTapWithUserInfo:)]) {
@@ -682,8 +684,7 @@ EMCDDeviceManagerDelegate>
         }else if ([action isEqualToString:MENU_ACTION_DOWNLOAD]){
             [self showHint:[EM_ChatResourcesUtils stringWithName:@"error.hint.function_null"]];
         }else if ([action isEqualToString:MENU_ACTION_COLLECT]){
-            message.extend.collected = !message.extend.collected;
-            [message updateExt];
+            message.messageSign.collected = !message.messageSign.collected;
         }else if ([action isEqualToString:MENU_ACTION_FORWARD]){
             [self showHint:[EM_ChatResourcesUtils stringWithName:@"error.hint.function_null"]];
         }
@@ -754,8 +755,7 @@ EMCDDeviceManagerDelegate>
         [_chatTableView reloadRowsAtIndexPaths:reloadArray withRowAnimation:UITableViewRowAnimationNone];
         EM_ChatMessageModel *messageModel = completionMessage;
         if (!messageModel.sender) {
-            messageModel.extend.details = YES;
-            [messageModel updateExt];
+            messageModel.messageSign.details = YES;
         }
     }
 }
@@ -796,21 +796,13 @@ EMCDDeviceManagerDelegate>
 
 #pragma mark - EM_LocationControllerDelegate
 -(void)sendLatitude:(double)latitude longitude:(double)longitude andAddress:(NSString *)address{
-    EM_ChatMessageExtend *extend = nil;
-    if(self.delegate && [self.delegate respondsToSelector:@selector(extendForMessage:messageType:)]){
-        extend = [self.delegate extendForMessage:address messageType:eMessageBodyType_Location];
-    }
-    [self sendMessage:[EM_ChatMessageModel fromLatitude:latitude longitude:longitude address:address conversation:self.conversation extend:extend]];
+    [self sendMessage:[EM_ChatMessageModel fromLatitude:latitude longitude:longitude address:address conversation:self.conversation ]];
 }
 
 #pragma mark - EM_ExplorerControllerDelegate
 - (void)didFileSelected:(NSArray *)files{
     for (NSString *path in files) {
-        EM_ChatMessageExtend *extend = nil;
-        if(self.delegate && [self.delegate respondsToSelector:@selector(extendForMessage:messageType:)]){
-            extend = [self.delegate extendForMessage:path messageType:eMessageBodyType_File];
-        }
-        [self sendMessage:[EM_ChatMessageModel fromFile:path name:path.lastPathComponent conversation:self.conversation extend:extend]];
+        [self sendMessage:[EM_ChatMessageModel fromFile:path name:path.lastPathComponent conversation:self.conversation]];
     }
 }
 
@@ -821,12 +813,7 @@ EMCDDeviceManagerDelegate>
     NSString *mediaType = info[UIImagePickerControllerMediaType];
     if ([mediaType isEqualToString:(NSString *)kUTTypeImage]) {
         UIImage *orgImage = info[UIImagePickerControllerOriginalImage];
-        
-        EM_ChatMessageExtend *extend = nil;
-        if(self.delegate && [self.delegate respondsToSelector:@selector(extendForMessage:messageType:)]){
-            extend = [self.delegate extendForMessage:orgImage messageType:eMessageBodyType_Image];
-        }
-        [self sendMessage:[EM_ChatMessageModel fromImage:orgImage conversation:self.conversation extend:extend]];
+        [self sendMessage:[EM_ChatMessageModel fromImage:orgImage conversation:self.conversation]];
     }else if([mediaType isEqualToString:(NSString *)kUTTypeMovie]){
         NSURL *videoURL = info[UIImagePickerControllerMediaURL];
         
@@ -839,13 +826,7 @@ EMCDDeviceManagerDelegate>
                 NSLog(@"failed to remove file, error:%@.", error);
             }
         }
-        
-        EM_ChatMessageExtend *extend = nil;
-        if(self.delegate && [self.delegate respondsToSelector:@selector(extendForMessage:messageType:)]){
-            extend = [self.delegate extendForMessage:[mp4 relativePath] messageType:eMessageBodyType_Video];
-        }
-        
-        [self sendMessage:[EM_ChatMessageModel fromVideo:[mp4 relativePath] conversation:self.conversation extend:extend]];
+        [self sendMessage:[EM_ChatMessageModel fromVideo:[mp4 relativePath] conversation:self.conversation]];
     }
 }
 
@@ -909,7 +890,7 @@ EMCDDeviceManagerDelegate>
     
     EM_ChatMessageCell *cell = [tableView dequeueReusableCellWithIdentifier:cellId];
     if (!cell) {
-        cell = [[EM_ChatMessageCell alloc]initWithBodyClass:[message classForBuildView] extendClass:NSClassFromString(message.extend.viewClassName) reuseIdentifier:cellId];
+        cell = [[EM_ChatMessageCell alloc]initWithBodyClass:[message classForBodyView] extendClass:[[message.messageExtend.extendBody class] viewForClass] reuseIdentifier:cellId];
         cell.backgroundColor = [UIColor clearColor];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         cell.config = self.config.messageConfig;

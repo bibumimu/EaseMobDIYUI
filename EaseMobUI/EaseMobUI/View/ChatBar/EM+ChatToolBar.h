@@ -70,6 +70,10 @@
  */
 - (void)pullUpShow;
 
+- (void)dismissKeyboard;
+
+- (void)dismissMoreTool;
+
 @end
 
 @protocol EM_MessageToolBarDelegate <NSObject>

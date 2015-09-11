@@ -200,7 +200,7 @@ typedef NS_ENUM(NSInteger, Emoji_Type) {
     CGSize size = self.frame.size;
     scroll.frame = CGRectMake(0, 0, size.width, (size.width - LEFT_PADDING - RIGHT_PADDING) / HORIZONTAL_COUNT * VERTICAL_COUNT);
     
-    CGFloat actionX = LEFT_PADDING;
+    CGFloat actionX = 0;
     CGFloat actionY = 0;
     CGFloat actionSize = scroll.frame.size.height / VERTICAL_COUNT;
     NSInteger actionPageIndex = 0;

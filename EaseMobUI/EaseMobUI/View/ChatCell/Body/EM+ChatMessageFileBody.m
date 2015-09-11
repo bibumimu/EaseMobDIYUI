@@ -17,6 +17,21 @@
     UILabel *sizeLabel;
 }
 
++ (CGSize)sizeForContentWithMessage:(EM_ChatMessageModel *)message maxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config{
+    
+    if (CGSizeEqualToSize(message.bodySize , CGSizeZero)) {
+        CGSize size;
+        
+        CGFloat width = maxWidth / 5 * 4;
+        size = CGSizeMake(width, width / 2);
+        size.height += config.bodyFilePadding * 2;
+        size.width += config.bodyFilePadding * 2;
+        
+        message.bodySize = size;
+    }
+    return message.bodySize;
+}
+
 - (instancetype)init{
     self = [super init];
     if (self) {

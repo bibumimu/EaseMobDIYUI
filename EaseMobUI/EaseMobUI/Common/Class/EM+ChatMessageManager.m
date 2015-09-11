@@ -8,6 +8,7 @@
 
 #import "EM+ChatMessageManager.h"
 #import "EM+ChatMessageModel.h"
+#import "EM_ChatMessage.h"
 #import "EMCDDeviceManager.h"
 
 #import <MWPhotoBrowser/MWPhotoBrowser.h>
@@ -136,7 +137,7 @@ static EM_ChatMessageManager *detailInstance = nil;
     if (playIndex >= 0 && playIndex < _voiceArray.count) {
         for (int i = 0; i < _voiceArray.count; i++) {
             EM_ChatMessageModel *messageModel = _voiceArray[i];
-            messageModel.extend.checking = i == playIndex;
+            messageModel.messageSign.checking = i == playIndex;
         }
         
         __block EM_ChatMessageModel *messageModel = _voiceArray[playIndex];
@@ -144,7 +145,7 @@ static EM_ChatMessageManager *detailInstance = nil;
         
         [[EMCDDeviceManager sharedInstance] asyncPlayingWithPath:messageBody.localPath completion:^(NSError *error) {
             
-            messageModel.extend.checking = NO;
+            messageModel.messageSign.checking = NO;
             playIndex ++;
             EM_ChatMessageModel *nextMessageModel;
             
@@ -158,7 +159,7 @@ static EM_ChatMessageManager *detailInstance = nil;
                         nextMessageModel = nil;
                     }
                 }
-                if (nextMessageModel && !nextMessageModel.extend.details) {
+                if (nextMessageModel && !nextMessageModel.messageSign.details) {
                     [self playNextVoice];
                 }
             }

@@ -142,7 +142,35 @@
     _keyboardVisible = NO;
     
     if(!_inputToolView.stateAction && !_inputToolView.stateEmoji && !_inputToolView.stateRecord){
-        [self dismissMoreTool];
+        
+        CGRect bounds = self.bounds;
+        
+        UIEdgeInsets contentInset = _chatTableView.contentInset;
+        contentInset.bottom = bounds.size.height - HEIGHT_MORE_TOOL_OF_DEFAULT;
+        
+        CGPoint center = self.center;
+        center.y = SCREEN_HEIGHT - contentInset.bottom + bounds.size.height / 2;
+        
+        CGFloat duration = [[[notification userInfo] objectForKey:UIKeyboardAnimationDurationUserInfoKey] floatValue];
+        NSUInteger options = [[[notification userInfo] objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue];
+        
+        [UIView animateWithDuration:duration delay:0 options:options animations:^{
+            _chatTableView.contentInset = contentInset;
+            self.bounds = bounds;
+            self.center = center;
+        } completion:^(BOOL finished){
+            _keyboardVisible = NO;
+            _moreToolVisble = NO;
+            if (_delegate && [_delegate respondsToSelector:@selector(messageToolBar:didShowToolOrKeyboard:)]) {
+                [_delegate messageToolBar:self didShowToolOrKeyboard:_moreToolVisble || _keyboardVisible];
+            }
+        }];
+    }
+}
+
+- (void)dismissKeyboard{
+    if (self.keyboardVisible) {
+        [_inputToolView dismissKeyboard];
     }
 }
 
@@ -176,6 +204,9 @@
 }
 
 - (void)dismissMoreTool{
+    if (!self.moreToolVisble) {
+        return;
+    }
     UIEdgeInsets contentInset = _chatTableView.contentInset;
     contentInset.bottom = self.bounds.size.height - HEIGHT_MORE_TOOL_OF_DEFAULT;
     
@@ -198,12 +229,8 @@
     _inputToolView.stateAction = NO;
     _inputToolView.stateEmoji = NO;
     _inputToolView.stateMore = YES;
-    if (self.moreToolVisble) {
-        [self dismissMoreTool];
-    }
-    if (self.keyboardVisible) {
-        [_inputToolView dismissKeyboard];
-    }
+    [self dismissMoreTool];
+    [self dismissKeyboard];
     if ([UIMenuController sharedMenuController].menuVisible) {
         [[UIMenuController sharedMenuController] setMenuVisible:NO animated:YES];
     }

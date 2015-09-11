@@ -17,6 +17,8 @@
 #import "DDLog.h"
 #import "DDTTYLogger.h"
 
+#import "UserCustomExtend.h"
+
 #import <EaseMobSDKFull/EaseMob.h>
 #import <Toast/UIView+Toast.h>
 
@@ -56,6 +58,9 @@
     [[EaseMob sharedInstance].chatManager addDelegate:self delegateQueue:nil];
     [[EaseMobUIClient sharedInstance] application:application didFinishLaunchingWithOptions:launchOptions];
     [[EaseMobUIClient sharedInstance] registerForRemoteNotificationsWithApplication:application];
+    
+    [[EaseMobUIClient sharedInstance] registerExtendClass:[UserCustomExtend class]];
+   
     return YES;
 }
 

@@ -13,6 +13,7 @@
 #import "EM+ChatResourcesUtils.h"
 
 #import "EM+ChatMessageModel.h"
+#import "EM+ChatMessageExtend.h"
 
 #import "UIColor+Hex.h"
 #import "EM+Common.h"
@@ -39,11 +40,11 @@
 
 + (CGFloat)heightForCellWithMessage:(EM_ChatMessageModel *)message  maxWidth:(CGFloat)max indexPath:(NSIndexPath *)indexPath config:(EM_ChatMessageUIConfig *)config{
     CGFloat contentHeight = config.messageTopPadding;
-    if (message.extend.showTime) {
+    if (message.messageExtend.showTime) {
         contentHeight += config.messageTimeLabelHeight;
     }
     CGFloat maxBubbleWidth = [EM_ChatMessageCell cellBubbleMaxWidth:max config:config];
-    CGSize bubbleSize = [message bubbleSizeFormMaxWidth:maxBubbleWidth config:config];
+    CGSize bubbleSize = [EM_ChatMessageBubble sizeForBubbleWithMessage:message maxWidth:maxBubbleWidth config:config];
     
     CGFloat height = bubbleSize.height + ( message.message.messageType == eMessageTypeChat ? 0 : config.messageNameLabelHeight);
     if (height > config.messageAvatarSize) {
@@ -130,8 +131,7 @@
     CGFloat _bubbleViewOriginY = _nameLabel.frame.origin.y + _nameLabel.frame.size.height;
     
     
-    CGSize bubbleSize = [_message bubbleSizeFormMaxWidth:[EM_ChatMessageCell cellBubbleMaxWidth:
-                                                          size.width config:self.config] config:self.config];
+    CGSize bubbleSize = _message.bubbleSize;
     
     CGFloat centerX;
     
@@ -200,7 +200,7 @@
     _bubbleView.message = _message;
     
     _timeLabel.text = [EM_ChatDateUtils stringFormatterMessageDateFromTimeInterval:message.message.timestamp / 1000];
-    _timeLabel.hidden = !_message.extend.showTime;
+    _timeLabel.hidden = !_message.messageExtend.showTime;
     
     if (_message.message.deliveryState == eMessageDeliveryState_Failure
         || _message.message.deliveryState == eMessageDeliveryState_Delivered) {

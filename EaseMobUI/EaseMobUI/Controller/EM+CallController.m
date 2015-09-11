@@ -11,6 +11,7 @@
 #import "EM+Common.h"
 #import "EM+ChatResourcesUtils.h"
 #import "EM+ChatMessageExtend.h"
+#import "EM+ChatMessageExtendCall.h"
 
 #import <SDWebImage/UIImageView+WebCache.h>
 #import <EaseMobSDKFull/EaseMob.h>
@@ -57,7 +58,7 @@
     BOOL showControl;
 }
 
-- (instancetype)initWithSession:(EMCallSession *)session type:(EMChatCallType)type action:(EMChatCallAction)action{
+- (instancetype)initWithSession:(EMCallSession *)session type:(NSInteger)type action:(EMChatCallAction)action{
     self = [super init];
     if (self) {
         _callSession = session;
@@ -79,13 +80,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    NSString *callType;
-    if (_callType == EMChatCallTypeVoice) {
-        callType = kEMCallTypeVoice;
-    }else{
-        callType = kEMCallTypeVideo;
-    }
-    [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallShow object:nil userInfo:@{kEMCallChatter:self.callSession.sessionChatter,kEMCallType:callType}];
+    [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallShow object:nil userInfo:@{kEMCallChatter:self.callSession.sessionChatter,kEMCallType:@(self.callType)}];
     
     _backgroundView = [[UIImageView alloc]initWithFrame:self.view.frame];
     _backgroundView.contentMode = UIViewContentModeScaleAspectFill;
@@ -96,7 +91,7 @@
     _blurView.frame = self.view.frame;
     [self.view addSubview:_blurView];
     
-    if (self.callType == EMChatCallTypeVideo) {
+    if (self.callType == eCallSessionTypeVideo) {
         [UIApplication sharedApplication].idleTimerDisabled = YES;
         _oppositeView = [[OpenGLView20 alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
         _oppositeView.backgroundColor = [UIColor clearColor];
@@ -265,18 +260,12 @@
     _hereView = nil;
     
     [[EaseMob sharedInstance].callManager removeDelegate:self];
-    NSString *callType;
-    if (_callType == EMChatCallTypeVoice) {
-        callType = kEMCallTypeVoice;
-    }else{
-        callType = kEMCallTypeVideo;
-    }
-    [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallDismiss object:nil userInfo:@{kEMCallChatter:self.callSession.sessionChatter,kEMCallType:callType}];
+    [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallDismiss object:nil userInfo:@{kEMCallChatter:self.callSession.sessionChatter,kEMCallType:@(self.callType)}];
 }
 
 #pragma mark - private
 - (void)viewTap:(id)sender{
-    if (self.callType == EMChatCallTypeVideo && self.callState == EMChatCallStateIn) {
+    if (self.callType == eCallSessionTypeVideo && self.callState == EMChatCallStateIn) {
         if (showControl) {
             _avatarImageView.hidden = YES;
             _interruptButton.hidden = YES;
@@ -422,26 +411,26 @@
             _ringPlayer = nil;
             
             BACK((^{
-                EM_ChatMessageExtend *extend = [[EM_ChatMessageExtend alloc]init];
+                EM_ChatMessageExtendCall *extendBody = [[EM_ChatMessageExtendCall alloc]init];
                 NSString *text = nil;
-                if (_callType == EMChatCallTypeVoice) {
-                    extend.callType = kEMCallTypeVoice;
-                    
+                if (self.callType == eCallSessionTypeAudio) {
                     text = [NSString stringWithFormat:@"%@%@",[EM_ChatResourcesUtils stringWithName:@"common.message_type_call_voice"],hintMessage];
                 }else{
-                    extend.callType = kEMCallTypeVideo;
                     text = [NSString stringWithFormat:@"%@%@",[EM_ChatResourcesUtils stringWithName:@"common.message_type_call_video"],hintMessage];
                 }
-                if (extend.callType) {
-                    EMChatText *chatText = [[EMChatText alloc] initWithText:text];
-                    EMTextMessageBody *textBody = [[EMTextMessageBody alloc] initWithChatObject:chatText];
-                    EMMessage *message = [[EMMessage alloc] initWithReceiver:_callSession.sessionChatter bodies:@[textBody]];
-                    message.isRead = YES;
-                    message.deliveryState = eMessageDeliveryState_Delivered;
-                    message.ext = [extend toDictionary];
-                    
-                    [[EaseMob sharedInstance].chatManager insertMessagesToDB:@[message] forChatter:_callSession.sessionChatter append2Chat:YES];
-                }
+                extendBody.callType = self.callType;
+                
+                EM_ChatMessageExtend *extend = [[EM_ChatMessageExtend alloc]init];
+                extend.extendBody = extendBody;
+                
+                EMChatText *chatText = [[EMChatText alloc] initWithText:text];
+                EMTextMessageBody *textBody = [[EMTextMessageBody alloc] initWithChatObject:chatText];
+                EMMessage *message = [[EMMessage alloc] initWithReceiver:_callSession.sessionChatter bodies:@[textBody]];
+                message.isRead = YES;
+                message.deliveryState = eMessageDeliveryState_Delivered;
+                message.ext = [extend toDictionary];
+                
+                [[EaseMob sharedInstance].chatManager insertMessagesToDB:@[message] forChatter:_callSession.sessionChatter append2Chat:YES];
                 sleep(3);
                 MAIN(^{
                     [self dismissViewControllerAnimated:YES completion:nil];
@@ -494,7 +483,7 @@
     [_contentLabel sizeToFit];
     _contentLabel.center = CGPointMake(self.view.frame.size.width / 2,_avatarImageView.frame.origin.y + _avatarImageView.frame.size.height + 10 + _contentLabel.frame.size.height / 2);
     
-    if (self.callAction == EMChatCallTypeVideo) {
+    if (self.callType == eCallSessionTypeVideo) {
         _avatarImageView.hidden = YES;
         _interruptButton.hidden = YES;
         _silenceButton.hidden = YES;

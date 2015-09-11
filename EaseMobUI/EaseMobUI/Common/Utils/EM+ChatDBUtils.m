@@ -8,8 +8,11 @@
 
 #import "EM+ChatDBUtils.h"
 #import "EM+ChatFileUtils.h"
+
 #import "EM_ChatConversation.h"
 #import "EM_ChatEmoji.h"
+#import "EM_ChatMessage.h"
+#import "EM_ChatExtend.h"
 
 #import <CoreData/CoreData.h>
 
@@ -20,6 +23,9 @@
 
 @property (nonatomic, strong) NSManagedObjectModel *fileManagedObjectModel;
 @property (nonatomic, strong) NSManagedObjectContext *fileManagedObjectContext;
+
+@property (nonatomic, strong) NSMutableDictionary *entitys;
+@property (nonatomic, strong) NSMutableDictionary *requests;
 
 @end
 
@@ -53,12 +59,31 @@
         self.chatManagedObjectContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
         self.chatManagedObjectContext.persistentStoreCoordinator = chatPsc;
         
+        self.entitys = [[NSMutableDictionary alloc]init];
+        self.requests = [[NSMutableDictionary alloc]init];
     }
     return self;
 }
 
+- (NSFetchRequest *)requestForEntityForName:(NSString *)entityName{
+    NSEntityDescription *entity = self.entitys[entityName];
+    if (!entity) {
+        entity = [NSEntityDescription entityForName:entityName inManagedObjectContext:self.chatManagedObjectContext];
+        [self.entitys setObject:entity forKey:entityName];
+    }
+    
+    NSFetchRequest *request = self.requests[entityName];
+    if (!request) {
+        request = [[NSFetchRequest alloc] init];
+        [self.requests setObject:request forKey:entityName];
+    }
+    request.entity = entity;
+    
+    return request;
+}
+
 - (EM_ChatConversation *)insertNewConversation{
-    EM_ChatConversation *conversation = [NSEntityDescription insertNewObjectForEntityForName:[EM_ChatConversation entityForName] inManagedObjectContext:self.chatManagedObjectContext];
+    EM_ChatConversation *conversation = [NSEntityDescription insertNewObjectForEntityForName:NSStringFromClass([EM_ChatConversation class]) inManagedObjectContext:self.chatManagedObjectContext];
     return conversation;
 }
 
@@ -70,11 +95,9 @@
 }
 
 - (EM_ChatConversation *)queryConversationWithChatter:(NSString *)chatter{
-    NSEntityDescription *entity = [NSEntityDescription entityForName:[EM_ChatConversation entityForName] inManagedObjectContext:self.chatManagedObjectContext];
     NSPredicate *predicate = [NSPredicate predicateWithFormat:[NSString stringWithFormat:@"%@ = '%@'",FIELD_NAME_CHATTER,chatter]];
-    
-    NSFetchRequest *request = [[NSFetchRequest alloc] init];
-    request.entity = entity;
+    NSString *entityName = NSStringFromClass([EM_ChatConversation class]);
+    NSFetchRequest *request = [self requestForEntityForName:entityName];
     request.predicate = predicate;
     
     NSError *error = nil;
@@ -86,7 +109,7 @@
 }
 
 - (EM_ChatEmoji *)insertNewEmoji{
-    EM_ChatEmoji *emoji = [NSEntityDescription insertNewObjectForEntityForName:[EM_ChatEmoji entityForName] inManagedObjectContext:self.chatManagedObjectContext];
+    EM_ChatEmoji *emoji = [NSEntityDescription insertNewObjectForEntityForName:NSStringFromClass([EM_ChatEmoji class]) inManagedObjectContext:self.chatManagedObjectContext];
     return emoji;
 }
 
@@ -97,26 +120,10 @@
     [self.chatManagedObjectContext deleteObject:emoji];
 }
 
-- (NSArray *)queryEmoji{
-    NSEntityDescription *entity = [NSEntityDescription entityForName:[EM_ChatEmoji entityForName] inManagedObjectContext:self.chatManagedObjectContext];
-    
-    NSFetchRequest *request = [[NSFetchRequest alloc] init];
-    request.entity = entity;
-    
-    NSError *error = nil;
-    NSArray *objs = [self.chatManagedObjectContext executeFetchRequest:request error:&error];
-    if (error || objs.count == 0) {
-        return nil;
-    }
-    return objs;
-}
-
 - (EM_ChatEmoji *)queryEmoji:(NSString *)emoji{
-    NSEntityDescription *entity = [NSEntityDescription entityForName:[EM_ChatEmoji entityForName] inManagedObjectContext:self.chatManagedObjectContext];
     NSPredicate *predicate = [NSPredicate predicateWithFormat:[NSString stringWithFormat:@"%@ = '%@'",FIELD_NAME_EMOJI,emoji]];
-    
-    NSFetchRequest *request = [[NSFetchRequest alloc] init];
-    request.entity = entity;
+    NSString *entityName = NSStringFromClass([EM_ChatEmoji class]);
+    NSFetchRequest *request = [self requestForEntityForName:entityName];
     request.predicate = predicate;
     
     NSError *error = nil;
@@ -127,11 +134,101 @@
     return objs[0];
 }
 
+- (NSArray *)queryEmoji{
+    NSString *entityName = NSStringFromClass([EM_ChatEmoji class]);
+    NSFetchRequest *request = [self requestForEntityForName:entityName];
+    
+    NSError *error = nil;
+    NSArray *objs = [self.chatManagedObjectContext executeFetchRequest:request error:&error];
+    if (error || objs.count == 0) {
+        return nil;
+    }
+    return objs;
+}
+
+- (EM_ChatMessage *)insertNewMessage{
+    EM_ChatMessage *message = [NSEntityDescription insertNewObjectForEntityForName:NSStringFromClass([EM_ChatMessage class]) inManagedObjectContext:self.chatManagedObjectContext];
+    return message;
+}
+
+- (void)deleteMessage:(EM_ChatMessage *)message{
+    if (!message) {
+        return;
+    }
+    [self.chatManagedObjectContext deleteObject:message];
+}
+
+- (EM_ChatMessage *)queryMessageWithId:(NSString *)messageId chatter:(NSString *)chatter{
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:[NSString stringWithFormat:@"%@ = '%@'",FIELD_NAME_MESSAGE,messageId]];
+    NSString *entityName = NSStringFromClass([EM_ChatMessage class]);
+    NSFetchRequest *request = [self requestForEntityForName:entityName];
+    
+    request.predicate = predicate;
+    
+    NSError *error = nil;
+    NSArray *objs = [self.chatManagedObjectContext executeFetchRequest:request error:&error];
+    if (error || objs.count == 0) {
+        return nil;
+    }
+    return objs[0];
+}
+
+- (NSArray *)queryMessage{
+    NSString *entityName = NSStringFromClass([EM_ChatMessage class]);
+    NSFetchRequest *request = [self requestForEntityForName:entityName];
+    
+    NSError *error = nil;
+    NSArray *objs = [self.chatManagedObjectContext executeFetchRequest:request error:&error];
+    if (error || objs.count == 0) {
+        return nil;
+    }
+    return objs;
+}
+
+
+- (EM_ChatExtend *)insertNewExtend{
+    EM_ChatExtend *extend = [NSEntityDescription insertNewObjectForEntityForName:NSStringFromClass([EM_ChatExtend class]) inManagedObjectContext:self.chatManagedObjectContext];
+    return extend;
+}
+
+- (void)deleteExtend:(EM_ChatExtend *)extend{
+    if (!extend) {
+        return;
+    }
+    [self.chatManagedObjectContext deleteObject:extend];
+}
+
+- (EM_ChatExtend *)queryExtendWithIdentifier:(NSString *)identifier{
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:[NSString stringWithFormat:@"%@ = '%@'",FIELD_NAME_IDENTIFIER,identifier]];
+    NSString *entityName = NSStringFromClass([EM_ChatExtend class]);
+    NSFetchRequest *request = [self requestForEntityForName:entityName];
+    request.predicate = predicate;
+    
+    NSError *error = nil;
+    NSArray *objs = [self.chatManagedObjectContext executeFetchRequest:request error:&error];
+    if (error || objs.count == 0) {
+        return nil;
+    }
+    return objs[0];
+}
+
+- (NSArray *)queryExtend{
+    NSString *entityName = NSStringFromClass([EM_ChatExtend class]);
+    NSFetchRequest *request = [self requestForEntityForName:entityName];
+    
+    NSError *error = nil;
+    NSArray *objs = [self.chatManagedObjectContext executeFetchRequest:request error:&error];
+    if (error || objs.count == 0) {
+        return nil;
+    }
+    return objs;
+}
+
 - (void)processPendingChangesChat{
     [self.chatManagedObjectContext processPendingChanges];
 }
 
-- (BOOL)saveChat{
+- (void)saveChat{
     __block NSError *error = nil;
     __block BOOL save = NO;
     if (self.chatManagedObjectContext.hasChanges) {
@@ -139,8 +236,10 @@
             save = [self.chatManagedObjectContext save:&error];
         }];
     }
-    //这里save永远都是NO,因为save方法是异步
-    return save && !error;
+
+    if (error || !save) {
+        NSLog(@"保存出错 - %@",error);
+    }
 }
 
 @end

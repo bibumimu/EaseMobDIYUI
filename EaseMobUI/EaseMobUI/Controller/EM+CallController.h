@@ -9,23 +9,6 @@
 #import "EM+ChatBaseController.h"
 @class EMCallSession;
 
-/**
- *  通话类型
- */
-typedef NS_ENUM(NSInteger, EMChatCallType){
-    /**
-     *  
-     */
-    EMChatCallTypeNone = 0,
-    /**
-     *  语音
-     */
-    EMChatCallTypeVoice,
-    /**
-     *  视频
-     */
-    EMChatCallTypeVideo
-};
 
 /**
  *  通话动作
@@ -65,11 +48,11 @@ typedef NS_ENUM(NSInteger, EMChatCallState){
 
 @interface EM_CallController : EM_ChatBaseController
 
-@property (nonatomic, assign, readonly) EMChatCallType callType;
+@property (nonatomic, assign, readonly) NSInteger callType;
 @property (nonatomic, assign, readonly) EMChatCallAction callAction;
 @property (nonatomic, assign, readonly) EMChatCallState callState;
 @property (nonatomic, strong, readonly) EMCallSession *callSession;
 
-- (instancetype)initWithSession:(EMCallSession *)session type:(EMChatCallType)type action:(EMChatCallAction)action;
+- (instancetype)initWithSession:(EMCallSession *)session type:(NSInteger)type action:(EMChatCallAction)action;
 
 @end

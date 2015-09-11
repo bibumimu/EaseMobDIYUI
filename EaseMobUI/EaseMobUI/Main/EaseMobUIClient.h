@@ -54,6 +54,10 @@ extern NSString * const kEMCallTypeVideo;
 
 + (BOOL)canVideo;
 
+- (BOOL)registerExtendClass:(Class)cls;
+
+- (Class)classForExtendWithIdentifier:(NSString *)identifier;
+
 - (void)registerForRemoteNotificationsWithApplication:(UIApplication *)application;
 
 /**

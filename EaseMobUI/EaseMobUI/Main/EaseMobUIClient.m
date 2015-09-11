@@ -10,9 +10,14 @@
 #import "EM+ChatFileUtils.h"
 #import "EM+ChatDBUtils.h"
 #import "EM+ChatResourcesUtils.h"
+
 #import "EM+Common.h"
 #import "EM+ChatUIConfig.h"
+
 #import "EM+ChatMessageModel.h"
+#import "EM+ChatMessageExtend.h"
+#import "EM+ChatMessageExtendCall.h"
+#import "EM_ChatExtend.h"
 
 #import "EM+CallController.h"
 #import "UIViewController+HUD.h"
@@ -21,6 +26,9 @@
 #import <UIKit/UIKit.h>
 #import <EaseMobSDKFull/EaseMob.h>
 #import <AVFoundation/AVFoundation.h>
+
+#import <objc/runtime.h>
+#import <objc/message.h>
 
 static EaseMobUIClient *sharedClient;
 /**
@@ -43,6 +51,8 @@ static EaseMobUIClient *sharedClient;
 @interface EaseMobUIClient()<EMChatManagerDelegate,EMCallManagerDelegate,EMDeviceManagerDelegate>
 
 @property (nonatomic, assign) BOOL callShow;
+
+@property (nonatomic, strong) NSMutableDictionary *extendRegisterClass;
 
 @end
 
@@ -97,7 +107,9 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
 - (instancetype)init{
     self = [super init];
     if (self) {
+        self.extendRegisterClass = [[NSMutableDictionary alloc]init];
         [self registerNotifications];
+        [self registerExtendClass:[EM_ChatMessageExtendCall class]];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(chatCallIn:) name:kEMNotificationCallActionIn object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(chatCallOut:) name:kEMNotificationCallActionOut object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(chatCallShow:) name:kEMNotificationCallShow object:nil];
@@ -109,6 +121,37 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
 - (void)dealloc{
     [self unregisterNotifications];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (BOOL)registerExtendClass:(Class)cls{
+    if (![cls isSubclassOfClass:[EM_ChatMessageExtendBody class]]) {
+        return NO;
+    }
+    NSString *extendIdentifier = [cls identifierForExtend];
+    NSString *extendClass = NSStringFromClass(cls);
+    NSString *extendView = NSStringFromClass([cls viewForClass]);
+    EM_ChatExtend *extend = [[EM_ChatDBUtils shared] queryExtendWithIdentifier:extendIdentifier];
+    if (!extend) {
+        extend = [[EM_ChatDBUtils shared] insertNewExtend];
+    }
+    extend.extendIdentifier = extendIdentifier;
+    extend.extendClass = extendClass;
+    extend.extendView = extendView;
+    [self.extendRegisterClass setObject:extend forKey:extendIdentifier];
+    
+    [[EM_ChatDBUtils shared] saveChat];
+    return YES;
+}
+
+- (Class)classForExtendWithIdentifier:(NSString *)identifier{
+    if (identifier) {
+        EM_ChatExtend *extend = self.extendRegisterClass[identifier];
+        if (extend && extend.extendClass) {
+            NSString *extendClass = extend.extendClass;
+            return NSClassFromString(extendClass);
+        }
+    }
+    return nil;
 }
 
 #pragma mark - notification
@@ -128,42 +171,30 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
     if (!callSession) {
         return;
     }
-    EMChatCallType type;
-    if (callSession.type == eCallSessionTypeVideo) {
-        type = EMChatCallTypeVideo;
-    }else if(callSession.type == eCallSessionTypeAudio){
-        type = EMChatCallTypeVoice;
-    }
-    
-    if (type == EMChatCallTypeVideo || type == EMChatCallTypeVoice) {
-        EM_CallController *callController = [[EM_CallController alloc]initWithSession:callSession type:type action:EMChatCallActionIn];
-        callController.modalPresentationStyle = UIModalPresentationOverFullScreen;
-        [ShareWindow.rootViewController presentViewController:callController animated:YES completion:nil];
-    }
+    EM_CallController *callController = [[EM_CallController alloc]initWithSession:callSession type:callSession.type action:EMChatCallActionIn];
+    callController.modalPresentationStyle = UIModalPresentationOverFullScreen;
+    [ShareWindow.rootViewController presentViewController:callController animated:YES completion:nil];
 }
 
 - (void)chatCallOut:(NSNotification *)notification{
     
     NSDictionary *userInfo = notification.userInfo;
     NSString *chatter = userInfo[kEMCallChatter];
-    NSString *action = userInfo[kEMCallType];
+    EMCallSessionType type = [userInfo[kEMCallType] integerValue];
     
     EMError *error = nil;
     EMCallSession *callSession;
-    EMChatCallType type;
-    if ([action isEqualToString:kEMCallTypeVoice]) {
+    if (type == eCallSessionTypeAudio) {
         if (![EaseMobUIClient canRecord]) {
             [ShareWindow.rootViewController showHint:[EM_ChatResourcesUtils stringWithName:@"error.hint.vioce"]];
             return;
         }
-        type = EMChatCallTypeVoice;
         callSession = [[EaseMob sharedInstance].callManager asyncMakeVoiceCall:chatter timeout:60 error:&error];
     }else{
         if (![EaseMobUIClient canVideo]) {
             [ShareWindow.rootViewController showHint:[EM_ChatResourcesUtils stringWithName:@"error.hint.video"]];
             return;
         }
-        type = EMChatCallTypeVideo;
         callSession = [[EaseMob sharedInstance].callManager asyncMakeVideoCall:chatter timeout:60 error:&error];
     }
     
@@ -193,7 +224,7 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
         callController.modalPresentationStyle = UIModalPresentationOverFullScreen;
         [result presentViewController:callController animated:YES completion:nil];
     }else{
-        if (type == EMChatCallTypeVoice) {
+        if (type == eCallSessionTypeAudio) {
             [ShareWindow.rootViewController showHint:[EM_ChatResourcesUtils stringWithName:@"error.hint.vioce"]];
         }else{
             [ShareWindow.rootViewController showHint:[EM_ChatResourcesUtils stringWithName:@"error.hint.video"]];
@@ -298,7 +329,7 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
         EM_ChatMessageModel *model = [EM_ChatMessageModel fromEMMessage:message];
         EMPushNotificationOptions *options = [[EaseMob sharedInstance].chatManager pushNotificationOptions];
         if (options.displayStyle == ePushNotificationDisplayStyle_messageSummary) {
-            if ([model.extend.className isEqualToString:NSStringFromClass([EM_ChatMessageExtend class])]) {
+            if ([model.messageExtend.identifier isEqualToString:kIdentifierForExtend]) {
                 switch (model.messageBody.messageBodyType) {
                     case eMessageBodyType_Text:{
                         EMTextMessageBody *body = (EMTextMessageBody *)model.messageBody;

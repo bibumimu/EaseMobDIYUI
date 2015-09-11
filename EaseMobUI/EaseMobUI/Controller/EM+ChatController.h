@@ -53,11 +53,9 @@
  *
  *  @param body 消息内容
  *
- *  @param type 消息类型
- *
- *  @return 扩展
+ *  @return
  */
-- (EM_ChatMessageExtend *)extendForMessage:(id)body messageType:(MessageBodyType)type;
+- (void)extendForMessage:(EM_ChatMessageModel *)message;
 
 /**
  *  是否允许发送消息

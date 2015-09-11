@@ -9,10 +9,12 @@
 #import "EM+ChatMessageBodyView.h"
 
 #import "EM+ChatResourcesUtils.h"
-#import "EM+Common.h"
-
 #import "EM+ChatMessageModel.h"
+#import "EM+ChatMessageExtend.h"
+#import "EM+ChatMessageExtendCall.h"
+#import "EM_ChatMessage.h"
 
+#import "EM+Common.h"
 #import "UIColor+Hex.h"
 
 @implementation EM_ChatMessageBodyView
@@ -27,7 +29,7 @@
 - (NSMutableArray *)menuItems{
     NSMutableArray *menuItems = [super menuItems];
     id<IEMMessageBody> messageBody = self.message.messageBody;
-    if (!self.message.extend.callType) {
+    if (![self.message.messageExtend.identifier isEqualToString:kIdentifierForCall]) {
         if (messageBody.messageBodyType == eMessageBodyType_Text) {
             //复制
             UIMenuItem *copyItem = [[UIMenuItem alloc]initWithTitle:[EM_ChatResourcesUtils stringWithName:@"common.copy"] action:@selector(copyEMMessage:)];
@@ -48,7 +50,7 @@
         if (messageBody.messageBodyType != eMessageBodyType_Video) {
             //收藏
             NSString *conllect = [EM_ChatResourcesUtils stringWithName:@"common.collect"];
-            if (self.message.extend.collected) {
+            if (self.message.messageSign && self.message.messageSign.collected) {
                 conllect = [EM_ChatResourcesUtils stringWithName:@"common.collect_cancel"];
             }
             UIMenuItem *collectItem = [[UIMenuItem alloc]initWithTitle:conllect action:@selector(collectEMMessage:)];

@@ -13,10 +13,12 @@
 #import "EM+ConversationCell.h"
 
 #import "EM+ChatMessageModel.h"
+#import "EM+ChatMessageExtend.h"
+#import "EM+ChatMessageExtendCall.h"
 #import "EM_ChatConversation.h"
 
-#import "EaseMobUIClient.h"
 #import "EM+Common.h"
+#import "EaseMobUIClient.h"
 #import "EM+ChatResourcesUtils.h"
 #import "EM+ChatDateUtils.h"
 #import "EM+ChatDBUtils.h"
@@ -280,7 +282,7 @@
     }else{
         EM_ChatMessageModel *message = [EM_ChatMessageModel fromEMMessage:[conversation latestMessage]];
         if (message) {
-            if (message.extend.callType){
+            if ([message.messageExtend.identifier isEqualToString:kIdentifierForCall]){
                 EMTextMessageBody *body = (EMTextMessageBody *)message.messageBody;
                 introAttributedString = [[NSMutableAttributedString alloc]initWithString:body.text];
             }else{
@@ -356,7 +358,7 @@
             if (self.delegate && [self.delegate respondsToSelector:@selector(introForConversationWithOpposite:message:)]) {
                 introAttributedString = [self.delegate introForConversationWithOpposite:opposite message:message];
             }else{
-                if (opposite) {
+                if (opposite && opposite.intro) {
                     introAttributedString = [[NSMutableAttributedString alloc]initWithString:opposite.intro];
                 }
             }
