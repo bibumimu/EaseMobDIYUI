@@ -24,7 +24,7 @@
 }
 
 + (BOOL)showExtend{
-    return YES;
+    return NO;
 }
 
 - (instancetype)init{

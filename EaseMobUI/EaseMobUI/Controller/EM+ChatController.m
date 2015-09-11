@@ -446,6 +446,14 @@ EMCDDeviceManagerDelegate>
     }
 }
 
+- (void)dismissKeyboard{
+    [_chatToolBarView dismissKeyboard];
+}
+
+- (void)dismissMoreTool{
+    [_chatToolBarView dismissMoreTool];
+}
+
 #pragma mark - EM_MessageToolBarDelegate
 - (void)messageToolBar:(EM_ChatToolBar *)toolBar didShowToolOrKeyboard:(BOOL)isShow{
     if (isShow && _dataSource.count > 0) {

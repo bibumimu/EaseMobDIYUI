@@ -33,6 +33,10 @@
 
 - (void)sendMessage:(EM_ChatMessageModel *)message;
 
+- (void)dismissKeyboard;
+
+- (void)dismissMoreTool;
+
 @end
 
 @protocol EM_ChatControllerDelegate <NSObject>
