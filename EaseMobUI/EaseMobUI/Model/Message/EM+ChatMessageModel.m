@@ -30,10 +30,10 @@
 
 + (instancetype)fromEMMessage:(EMMessage *)message{
     if (message) {
-         NSDictionary *extendBody = message.ext[@"extendBody"];
         EM_ChatMessageModel *model = [[EM_ChatMessageModel alloc]init];
         model.message = message;
-        model.messageExtend = [[EM_ChatMessageExtend alloc]init];
+        
+        NSDictionary *extendBody = message.ext[@"extendBody"];
         NSString *identifier  = message.ext[kIdentifier];
         Class cls = [[EaseMobUIClient sharedInstance] classForExtendWithIdentifier:identifier];
         if (cls) {

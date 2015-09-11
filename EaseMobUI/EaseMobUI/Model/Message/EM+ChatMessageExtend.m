@@ -29,9 +29,11 @@
 
 - (void)setExtendBody:(EM_ChatMessageExtendBody<Optional> *)extendBody{
     _extendBody = extendBody;
-    self.identifier = [[extendBody class] identifierForExtend];
-    self.showBody = [[extendBody class] showBody];
-    self.showExtend = [[extendBody class] showExtend];
+    if (_extendBody) {
+        self.identifier = [[_extendBody class] identifierForExtend];
+        self.showBody = [[_extendBody class] showBody];
+        self.showExtend = [[_extendBody class] showExtend];
+    }
 }
 
 @end
