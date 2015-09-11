@@ -12,6 +12,7 @@
 		B90086C51B7091CC003BC694 /* EM_ChatStrings.strings in Resources */ = {isa = PBXBuildFile; fileRef = B90086C31B7091CC003BC694 /* EM_ChatStrings.strings */; };
 		B90086C61B7091CC003BC694 /* EM_Resource.bundle in Resources */ = {isa = PBXBuildFile; fileRef = B90086C41B7091CC003BC694 /* EM_Resource.bundle */; };
 		B90087141B71AC42003BC694 /* EaseMobUIClient.m in Sources */ = {isa = PBXBuildFile; fileRef = B90087131B71AC42003BC694 /* EaseMobUIClient.m */; };
+		B9102BF61BA2CD09000DEFFB /* RealtimeSearchUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = B9102BF51BA2CD09000DEFFB /* RealtimeSearchUtil.m */; };
 		B92034981B9AE3810035BA23 /* USettingsController.m in Sources */ = {isa = PBXBuildFile; fileRef = B92034971B9AE3810035BA23 /* USettingsController.m */; };
 		B920349B1B9AE5220035BA23 /* ULoginController.m in Sources */ = {isa = PBXBuildFile; fileRef = B920349A1B9AE5220035BA23 /* ULoginController.m */; };
 		B920349F1B9AEA070035BA23 /* UAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = B920349E1B9AEA070035BA23 /* UAccount.m */; };
@@ -327,6 +328,8 @@
 		B90086C41B7091CC003BC694 /* EM_Resource.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = EM_Resource.bundle; sourceTree = "<group>"; };
 		B90087121B71AC42003BC694 /* EaseMobUIClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EaseMobUIClient.h; sourceTree = "<group>"; };
 		B90087131B71AC42003BC694 /* EaseMobUIClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EaseMobUIClient.m; sourceTree = "<group>"; };
+		B9102BF41BA2CD09000DEFFB /* RealtimeSearchUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RealtimeSearchUtil.h; sourceTree = "<group>"; };
+		B9102BF51BA2CD09000DEFFB /* RealtimeSearchUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RealtimeSearchUtil.m; sourceTree = "<group>"; };
 		B92034961B9AE3810035BA23 /* USettingsController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = USettingsController.h; sourceTree = "<group>"; };
 		B92034971B9AE3810035BA23 /* USettingsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = USettingsController.m; sourceTree = "<group>"; };
 		B92034991B9AE5220035BA23 /* ULoginController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ULoginController.h; sourceTree = "<group>"; };
@@ -1667,6 +1670,8 @@
 		B9782A001B43EF7200D602F0 /* Class */ = {
 			isa = PBXGroup;
 			children = (
+				B9102BF41BA2CD09000DEFFB /* RealtimeSearchUtil.h */,
+				B9102BF51BA2CD09000DEFFB /* RealtimeSearchUtil.m */,
 				B990CA4D1B5F735300BA25B1 /* EM+ChatMessageManager.h */,
 				B990CA4E1B5F735300BA25B1 /* EM+ChatMessageManager.m */,
 				B96A55E21B82CEA900ABBE1E /* EM+ChatExplorerConnection.h */,
@@ -2247,6 +2252,7 @@
 				B93227FC1B90B92D00B553C1 /* GPUImageGammaFilter.m in Sources */,
 				B93228681B90B92D00B553C1 /* GPUImageWeakPixelInclusionFilter.m in Sources */,
 				B920349B1B9AE5220035BA23 /* ULoginController.m in Sources */,
+				B9102BF61BA2CD09000DEFFB /* RealtimeSearchUtil.m in Sources */,
 				B932282A1B90B92D00B553C1 /* GPUImageNobleCornerDetectionFilter.m in Sources */,
 				B9D1BFAF1B5CE8CF00C0A3D4 /* EM+LocationController.m in Sources */,
 				B9D1BFA41B5A4C3900C0A3D4 /* EMCDDeviceManagerBase.m in Sources */,

@@ -105,6 +105,9 @@ UICollectionViewDelegateFlowLayout>
         _tableHeader.collectionView.dataSource = nil;
         _tableHeader.collectionView.delegate = nil;
     }
+    
+    _tableHeader.searchBar.hidden = !showSearchBar;
+    _tableHeader.collectionView.hidden = !showTagBar;
     _tableHeader.frame = CGRectMake(0, 0, self.view.frame.size.width, height);
     [_tableHeader.collectionView reloadData];
     [_tableView reloadData];

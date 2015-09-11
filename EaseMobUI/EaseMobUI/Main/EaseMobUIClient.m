@@ -173,7 +173,7 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
     }
     EM_CallController *callController = [[EM_CallController alloc]initWithSession:callSession type:callSession.type action:EMChatCallActionIn];
     callController.modalPresentationStyle = UIModalPresentationOverFullScreen;
-    [ShareWindow.rootViewController presentViewController:callController animated:YES completion:nil];
+    [[[[UIApplication sharedApplication].windows lastObject] rootViewController] presentViewController:callController animated:YES completion:nil];
 }
 
 - (void)chatCallOut:(NSNotification *)notification{
@@ -199,30 +199,9 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
     }
     
     if (callSession && !error) {
-        UIViewController *result = nil;
-        
-        UIWindow * window = ShareWindow;
-        if (window.windowLevel != UIWindowLevelNormal){
-            NSArray *windows = [[UIApplication sharedApplication] windows];
-            for(UIWindow * tmpWin in windows){
-                if (tmpWin.windowLevel == UIWindowLevelNormal){
-                    window = tmpWin;
-                    break;
-                }
-            }
-        }
-        
-        UIView *frontView = [[window subviews] objectAtIndex:0];
-        id nextResponder = [frontView nextResponder];
-        
-        if ([nextResponder isKindOfClass:[UIViewController class]]){
-            result = nextResponder;
-        }else{
-            result = window.rootViewController;
-        }
         EM_CallController *callController = [[EM_CallController alloc]initWithSession:callSession type:type action:EMChatCallActionOut];
         callController.modalPresentationStyle = UIModalPresentationOverFullScreen;
-        [result presentViewController:callController animated:YES completion:nil];
+        [[[[UIApplication sharedApplication].windows lastObject] rootViewController] presentViewController:callController animated:YES completion:nil];
     }else{
         if (type == eCallSessionTypeAudio) {
             [ShareWindow.rootViewController showHint:[EM_ChatResourcesUtils stringWithName:@"error.hint.vioce"]];

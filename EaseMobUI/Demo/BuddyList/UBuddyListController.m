@@ -75,7 +75,7 @@
 
 #pragma mark - EM_ChatBuddyListControllerDataSource
 - (BOOL)shouldShowSearchBar{
-    return YES;
+    return NO;
 }
 
 - (BOOL)shouldShowTagBar{

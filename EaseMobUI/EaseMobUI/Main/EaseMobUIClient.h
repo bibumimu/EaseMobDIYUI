@@ -96,7 +96,6 @@ extern NSString * const kEMCallTypeVideo;
 
 @protocol EM_ChatUserDelegate <NSObject>
 
-@required
 @optional
 
 - (EM_ChatUser *)userForEMChat;
@@ -105,6 +104,7 @@ extern NSString * const kEMCallTypeVideo;
 
 @protocol EM_ChatOppositeDelegate <NSObject>
 
+@optional
 /**
  *  根据chatter返回好友信息
  *
