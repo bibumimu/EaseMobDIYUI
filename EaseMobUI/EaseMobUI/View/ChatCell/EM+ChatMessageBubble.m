@@ -75,7 +75,7 @@
     
     if (self.message.messageExtend.showExtend) {
         _extendView.bounds = CGRectMake(0, 0, extendSize.width, extendSize.height);
-        _extendView.center = CGPointMake(size.width / 2, _bodyView.frame.origin.y + _bodyView.frame.size.height + 1 + extendSize.height / 2);
+        _extendView.center = CGPointMake(size.width / 2, _bodyView.frame.origin.y + _bodyView.frame.size.height + extendSize.height / 2);
     }else{
         _extendView.frame = CGRectZero;
     }
