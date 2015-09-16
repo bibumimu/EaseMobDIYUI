@@ -102,6 +102,7 @@
     [super viewDidLoad];
     [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallShow object:nil userInfo:@{kEMCallChatter:self.callSession.sessionChatter,kEMCallType:@(self.callType)}];
     
+    self.view.backgroundColor = [UIColor whiteColor];
     _backgroundView = [[UIImageView alloc]initWithFrame:self.view.frame];
     _backgroundView.contentMode = UIViewContentModeScaleAspectFill;
     [self.view addSubview:_backgroundView];
@@ -236,7 +237,7 @@
     
     _silenceButton = [[UIButton alloc]init];
     _silenceButton.bounds = CGRectMake(0, 0, 60, 60);
-    _silenceButton.center = CGPointMake(_agreeButton.center.x + _agreeButton.frame.size.width, _agreeButton.center.y);
+    _silenceButton.center = CGPointMake(self.view.frame.size.width - COMMON_PADDING - _silenceButton.frame.size.width / 2, _agreeButton.center.y);
     _silenceButton.layer.masksToBounds = YES;
     _silenceButton.layer.cornerRadius = _silenceButton.bounds.size.width / 2;
     _silenceButton.layer.borderColor = [UIColor whiteColor].CGColor;
@@ -257,7 +258,7 @@
     
     _expandButton = [[UIButton alloc]init];
     _expandButton.bounds = CGRectMake(0, 0, 60, 60);
-    _expandButton.center = CGPointMake(_rejectButton.center.x - _rejectButton.frame.size.width, _agreeButton.center.y);
+    _expandButton.center = CGPointMake(COMMON_PADDING + _expandButton.frame.size.width / 2, _agreeButton.center.y);
     _expandButton.layer.masksToBounds = YES;
     _expandButton.layer.cornerRadius = _expandButton.bounds.size.width / 2;
     _expandButton.layer.borderColor = [UIColor whiteColor].CGColor;

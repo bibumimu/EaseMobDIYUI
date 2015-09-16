@@ -19,6 +19,7 @@
 #import "EM+ChatMessageExtendCall.h"
 #import "EM+ChatMessageExtendFile.h"
 #import "EM_ChatExtend.h"
+#import "GPUImageVideoCamera.h"
 
 #import "EM+CallController.h"
 #import "UIViewController+HUD.h"
@@ -98,7 +99,11 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
 
 + (BOOL)canVideo{
     if([[[UIDevice currentDevice] systemVersion] compare:@"7.0"] != NSOrderedAscending){
-        return [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo] == AVAuthorizationStatusAuthorized;
+        if ([AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo] == AVAuthorizationStatusNotDetermined) {
+            return [GPUImageVideoCamera isFrontFacingCameraPresent];
+        }else {
+            return [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo] == AVAuthorizationStatusAuthorized;
+        }
     }
     return YES;
 }
