@@ -386,12 +386,10 @@ EMCDDeviceManagerDelegate>
     
     [_dataSource addObject:messageModel];
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:(_dataSource.count - 1) inSection:0];
-    MAIN(^{
-        [_chatTableView beginUpdates];
-        [_chatTableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
-        [_chatTableView endUpdates];
-        [_chatTableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
-    });
+    [_chatTableView beginUpdates];
+    [_chatTableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
+    [_chatTableView endUpdates];
+    [_chatTableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
 }
 
 - (void)reloadMessage:(EMMessage *)message{
