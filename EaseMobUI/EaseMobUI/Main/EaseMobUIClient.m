@@ -17,6 +17,7 @@
 #import "EM+ChatMessageModel.h"
 #import "EM+ChatMessageExtend.h"
 #import "EM+ChatMessageExtendCall.h"
+#import "EM+ChatMessageExtendFile.h"
 #import "EM_ChatExtend.h"
 
 #import "EM+CallController.h"
@@ -27,8 +28,6 @@
 #import <EaseMobSDKFull/EaseMob.h>
 #import <AVFoundation/AVFoundation.h>
 
-#import <objc/runtime.h>
-#import <objc/message.h>
 
 static EaseMobUIClient *sharedClient;
 /**
@@ -110,6 +109,7 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
         self.extendRegisterClass = [[NSMutableDictionary alloc]init];
         [self registerNotifications];
         [self registerExtendClass:[EM_ChatMessageExtendCall class]];
+        [self registerExtendClass:[EM_ChatMessageExtendFile class]];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(chatCallIn:) name:kEMNotificationCallActionIn object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(chatCallOut:) name:kEMNotificationCallActionOut object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(chatCallShow:) name:kEMNotificationCallShow object:nil];
@@ -189,13 +189,13 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
             [ShareWindow.rootViewController showHint:[EM_ChatResourcesUtils stringWithName:@"error.hint.vioce"]];
             return;
         }
-        callSession = [[EaseMob sharedInstance].callManager asyncMakeVoiceCall:chatter timeout:60 error:&error];
+        callSession = [[EaseMob sharedInstance].callManager asyncMakeVoiceCall:chatter timeout:180 error:&error];
     }else{
         if (![EaseMobUIClient canVideo]) {
             [ShareWindow.rootViewController showHint:[EM_ChatResourcesUtils stringWithName:@"error.hint.video"]];
             return;
         }
-        callSession = [[EaseMob sharedInstance].callManager asyncMakeVideoCall:chatter timeout:60 error:&error];
+        callSession = [[EaseMob sharedInstance].callManager asyncMakeVideoCall:chatter timeout:180 error:&error];
     }
     
     if (callSession && !error) {

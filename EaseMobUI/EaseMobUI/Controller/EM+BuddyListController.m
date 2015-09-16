@@ -351,10 +351,11 @@ UICollectionViewDelegateFlowLayout>
                     expand = [self.dataSource shouldExpandForGroupAtIndex:section];
                 }
                 
+                header.arrow = KEMChatIconMorePlay;
                 if (expand) {
-                    header.arrow = kEMChatIconBuddyStretch;
+                    header.angle = 90 * M_PI / 180.0;
                 }else{
-                    header.arrow = kEMChatIconBuddyShrink;
+                    header.angle = 0;
                 }
                 
                 NSInteger rowCount = 0;

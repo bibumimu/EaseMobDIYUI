@@ -42,7 +42,6 @@
 
 #define mark - EM_ChatControllerDelegate
 - (void)extendForMessage:(EM_ChatMessageModel *)message{
-    message.messageExtend.extendBody = [[UserCustomExtend alloc]init];
     message.messageExtend.extendAttributes = @{@"a":@"不显示的属性"};
 }
 

@@ -21,8 +21,7 @@
 
 #define BUTTON_SIZE (40)
 #define BOTTOM_HEIGHT (30)
-#define RECORD_NORMAL_BACKGROUND_COLOR (@"#9F79EE")
-#define RECORD_HIGHLIGHTED_BACKGROUND_COLOR (@"#912CEE")
+#define RECORD_NORMAL_BACKGROUND_COLOR (0xafa376)
 
 typedef NS_ENUM(NSUInteger,RECORD_STATE) {
     RECORD_STATE_NORMAL = 0,
@@ -65,13 +64,14 @@ typedef NS_ENUM(NSUInteger,RECORD_STATE) {
         [self addSubview:arcView];
         
         recordLabel = [[UILabel alloc]init];
-        recordLabel.textColor = [UIColor colorWithHEX:RECORD_NORMAL_BACKGROUND_COLOR alpha:1.0];
+        recordLabel.textColor = [UIColor colorWithHexRGB:RECORD_NORMAL_BACKGROUND_COLOR];
         recordLabel.textAlignment = NSTextAlignmentCenter;
         [self addSubview:recordLabel];
         
         recordView = [[UILabel alloc]init];
         recordView.font = [EM_ChatResourcesUtils iconFontWithSize:80];
         recordView.textAlignment = NSTextAlignmentCenter;
+        recordView.backgroundColor = [UIColor colorWithHexRGB:RECORD_NORMAL_BACKGROUND_COLOR];
         recordView.textColor = [UIColor whiteColor];
         recordView.layer.masksToBounds = YES;
         [self addSubview:recordView];
@@ -80,18 +80,24 @@ typedef NS_ENUM(NSUInteger,RECORD_STATE) {
         cancelView.font = [EM_ChatResourcesUtils iconFontWithSize:25];
         cancelView.text = kEMChatIconMoreTrash;
         cancelView.backgroundColor = [UIColor whiteColor];
+        cancelView.textColor = [UIColor grayColor];
         cancelView.textAlignment = NSTextAlignmentCenter;
         cancelView.layer.cornerRadius = BUTTON_SIZE / 2;
         cancelView.layer.masksToBounds = YES;
+        cancelView.layer.borderColor = [UIColor colorWithHexRGB:RECORD_NORMAL_BACKGROUND_COLOR].CGColor;
+        cancelView.layer.borderWidth = LINE_WIDTH;
         [self addSubview:cancelView];
         
         playView = [[UILabel alloc]init];
         playView.font = [EM_ChatResourcesUtils iconFontWithSize:25];
         playView.text = KEMChatIconMorePlay;
         playView.backgroundColor = [UIColor whiteColor];
+        playView.textColor = [UIColor grayColor];
         playView.textAlignment = NSTextAlignmentCenter;
         playView.layer.cornerRadius = BUTTON_SIZE / 2;
         playView.layer.masksToBounds = YES;
+        playView.layer.borderColor = [UIColor colorWithHexRGB:RECORD_NORMAL_BACKGROUND_COLOR].CGColor;
+        playView.layer.borderWidth = LINE_WIDTH;
         [self addSubview:playView];
         
         cancelButton = [[UIButton alloc]init];
@@ -109,7 +115,7 @@ typedef NS_ENUM(NSUInteger,RECORD_STATE) {
         [self addSubview:sendButton];
         
         buttonLine = [[UIView alloc]init];
-        buttonLine.backgroundColor = [UIColor grayColor];
+        buttonLine.backgroundColor = [UIColor colorWithHexRGB:RECORD_NORMAL_BACKGROUND_COLOR];
         [self addSubview:buttonLine];
         
         [self refreshUIWithSate:RECORD_STATE_NORMAL];
@@ -125,7 +131,7 @@ typedef NS_ENUM(NSUInteger,RECORD_STATE) {
             
             recordView.font = [EM_ChatResourcesUtils iconFontWithSize:60];
             recordView.text = kEMChatIconMoreRecord;
-            recordView.backgroundColor = [UIColor colorWithHEX:RECORD_HIGHLIGHTED_BACKGROUND_COLOR alpha:1.0];
+            recordView.backgroundColor = [UIColor colorWithHexRGB:RECORD_NORMAL_BACKGROUND_COLOR];
             recordView.textColor = [UIColor whiteColor];
             
             playView.hidden = NO;
@@ -145,7 +151,7 @@ typedef NS_ENUM(NSUInteger,RECORD_STATE) {
             
             recordView.font = [EM_ChatResourcesUtils iconFontWithSize:60];
             recordView.text = kEMChatIconMoreRecord;
-            recordView.backgroundColor = [UIColor colorWithHEX:RECORD_HIGHLIGHTED_BACKGROUND_COLOR alpha:1.0];
+            recordView.backgroundColor = [UIColor colorWithHexRGB:RECORD_NORMAL_BACKGROUND_COLOR];
             recordView.textColor = [UIColor whiteColor];
             
             playView.hidden = NO;
@@ -165,7 +171,7 @@ typedef NS_ENUM(NSUInteger,RECORD_STATE) {
             
             recordView.font = [EM_ChatResourcesUtils iconFontWithSize:60];
             recordView.text = kEMChatIconMoreRecord;
-            recordView.backgroundColor = [UIColor colorWithHEX:RECORD_HIGHLIGHTED_BACKGROUND_COLOR alpha:1.0];
+            recordView.backgroundColor = [UIColor colorWithHexRGB:RECORD_NORMAL_BACKGROUND_COLOR];
             recordView.textColor = [UIColor whiteColor];
             
             playView.hidden = NO;
@@ -185,7 +191,7 @@ typedef NS_ENUM(NSUInteger,RECORD_STATE) {
             recordView.font = [EM_ChatResourcesUtils iconFontWithSize:50];
             recordView.text = kEMChatIconMoreStop;
             recordView.backgroundColor = [UIColor whiteColor];
-            recordView.textColor = [UIColor colorWithHEX:RECORD_HIGHLIGHTED_BACKGROUND_COLOR alpha:1.0];
+            recordView.textColor = [UIColor colorWithHexRGB:RECORD_NORMAL_BACKGROUND_COLOR];
             
             playView.hidden = YES;
             
@@ -217,7 +223,7 @@ typedef NS_ENUM(NSUInteger,RECORD_STATE) {
             recordView.font = [EM_ChatResourcesUtils iconFontWithSize:50];
             recordView.text = KEMChatIconMorePlay;
             recordView.backgroundColor = [UIColor whiteColor];
-            recordView.textColor = [UIColor colorWithHEX:RECORD_HIGHLIGHTED_BACKGROUND_COLOR alpha:1.0];
+            recordView.textColor = [UIColor colorWithHexRGB:RECORD_NORMAL_BACKGROUND_COLOR];
             
             playView.hidden = YES;
             
@@ -236,7 +242,7 @@ typedef NS_ENUM(NSUInteger,RECORD_STATE) {
             
             recordView.font = [EM_ChatResourcesUtils iconFontWithSize:60];
             recordView.text = kEMChatIconMoreRecord;
-            recordView.backgroundColor = [UIColor colorWithHEX:RECORD_HIGHLIGHTED_BACKGROUND_COLOR alpha:1.0];
+            recordView.backgroundColor = [UIColor colorWithHexRGB:RECORD_NORMAL_BACKGROUND_COLOR];
             recordView.textColor = [UIColor whiteColor];
             
             playView.hidden = YES;

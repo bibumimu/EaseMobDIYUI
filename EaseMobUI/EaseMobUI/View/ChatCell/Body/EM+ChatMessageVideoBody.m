@@ -18,8 +18,7 @@
 
 @implementation EM_ChatMessageVideoBody{
     UIImageView *imageView;
-    UILabel *nameLabel;
-    UILabel *sizeLabel;
+    UILabel *playLabel;
 }
 
 + (CGSize)sizeForContentWithMessage:(EM_ChatMessageModel *)message maxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config{
@@ -43,18 +42,13 @@
         imageView.backgroundColor = [UIColor clearColor];
         [self addSubview:imageView];
         
-        nameLabel = [[UILabel alloc]init];
-        nameLabel.textAlignment = NSTextAlignmentLeft;
-        nameLabel.numberOfLines = 0;
-        nameLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
-        nameLabel.textColor = [UIColor blackColor];
-        [self addSubview:nameLabel];
-        
-        sizeLabel = [[UILabel alloc]init];
-        sizeLabel.textAlignment = NSTextAlignmentLeft;
-        sizeLabel.textColor = [UIColor grayColor];
-        sizeLabel.font = [UIFont systemFontOfSize:10];
-        [self addSubview:sizeLabel];
+        playLabel = [[UILabel alloc]init];
+        playLabel.font = [EM_ChatResourcesUtils iconFontWithSize:30];
+        playLabel.backgroundColor = [UIColor clearColor];
+        playLabel.text = kEMChatIconCallVideoPlay;
+        playLabel.textColor = [UIColor whiteColor];
+        playLabel.textAlignment = NSTextAlignmentCenter;
+        [self addSubview:playLabel];
     }
     return self;
 }
@@ -64,8 +58,9 @@
     
     CGSize size = self.frame.size;
     imageView.frame = CGRectMake(self.config.bodyVideoPadding, self.config.bodyVideoPadding, size.height - self.config.bodyVideoPadding * 2, size.height - self.config.bodyVideoPadding * 2);
-    nameLabel.frame = CGRectMake(imageView.frame.size.width + 10, self.config.bodyVideoPadding, size.width - imageView.frame.size.width - 10 , size.height / 3 * 2);
-    sizeLabel.frame = CGRectMake(imageView.frame.size.width + 10, nameLabel.frame.size.height, (size.width - imageView.frame.size.width - 10) / 2 , size.height / 3);
+    
+    CGFloat playSize = (size.width > size.height ? size.height : size.width) - 16;
+    playLabel.frame = CGRectMake((size.width - playSize) / 2, (size.height - playSize) / 2, playSize, playSize);
 }
 
 - (NSMutableDictionary *)userInfo{
@@ -78,9 +73,6 @@
     [super setMessage:message];
     
     EMVideoMessageBody *videoBody = (EMVideoMessageBody *)message.messageBody;
-    
-    nameLabel.text = videoBody.displayName;
-    sizeLabel.text = [EM_ChatFileUtils stringFileSize:videoBody.fileLength];
     
     UIImage *image = [[UIImage alloc]initWithContentsOfFile:videoBody.thumbnailLocalPath];
     if (image) {

@@ -36,6 +36,7 @@
 @implementation EM_ChatListController{
     EM_ChatTableView *_tableView;
     NSMutableArray *_searchResultArray;
+    NSArray *_dataConversations;
 }
 
 - (instancetype)init{
@@ -88,7 +89,7 @@
     [[EaseMob sharedInstance].chatManager addDelegate:self delegateQueue:nil];
     
     if (!self.dataSource) {
-        [[EaseMob sharedInstance].chatManager loadAllConversationsFromDatabaseWithAppend2Chat:YES];
+        self.needReload = YES;
     }
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didChatEditorChanged) name:kEMNotificationEditorChanged object:nil];
@@ -97,7 +98,7 @@
 - (void)viewDidAppear:(BOOL)animated{
     [super viewDidAppear:animated];
     if (self.needReload) {
-        [_tableView reloadData];
+        [self reloadData];
         self.needReload = NO;
     }
 }
@@ -115,26 +116,10 @@
 }
 
 - (void)didEndCall:(NSNotification *)notification{
-    NSString *chattar = notification.userInfo[kEMCallChatter];
-    if (self.dataSource) {
-        if (self.isShow) {
-            [_tableView reloadData];
-        }else{
-            self.needReload = YES;
-        }
+    if (self.isShow) {
+        [_tableView reloadData];
     }else{
-        NSArray *conversations = [EaseMob sharedInstance].chatManager.conversations;
-        for (int i = 0; i < conversations.count; i++) {
-            EMConversation *conversation = conversations[i];
-            if ([conversation.chatter isEqualToString:chattar]) {
-                if (self.isShow) {
-                    [_tableView reloadData];
-                }else{
-                    self.needReload = YES;
-                }
-                break;
-            }
-        }
+        self.needReload = YES;
     }
 }
 
@@ -143,9 +128,7 @@
     if (self.dataSource) {
         [_tableView reloadData];
     }else{
-        if ([EaseMob sharedInstance].chatManager.isLoggedIn) {
-            [[EaseMob sharedInstance].chatManager loadAllConversationsFromDatabaseWithAppend2Chat:YES];
-        }
+        [[EaseMob sharedInstance].chatManager loadAllConversationsFromDatabaseWithAppend2Chat:YES];
     }
 }
 
@@ -179,7 +162,7 @@
                 [self.delegate didDeletedWithConversation:conversation];
             }
         }else{
-            EMConversation *conversation = [EaseMob sharedInstance].chatManager.conversations[indexPath.row];
+            EMConversation *conversation = _dataConversations[indexPath.row];
             [[EaseMob sharedInstance].chatManager removeConversationByChatter:conversation.chatter deleteMessages:NO append2Chat:YES];
         }
     }
@@ -213,7 +196,7 @@
         if (self.dataSource) {
             return [self.dataSource numberOfRows];
         }else{
-            return [EaseMob sharedInstance].chatManager.conversations.count;
+            return _dataConversations.count;
         }
     }else{
         return _searchResultArray.count;
@@ -228,7 +211,7 @@
         if (self.dataSource) {
             conversation = [self.dataSource dataForRowAtIndex:indexPath.row];;
         }else{
-            conversation = [EaseMob sharedInstance].chatManager.conversations[indexPath.row];
+            conversation = _dataConversations[indexPath.row];
         }
     }else{
         conversation = _searchResultArray[indexPath.row];
@@ -246,7 +229,7 @@
         if (self.dataSource) {
             cell.topLineView.hidden = indexPath.row != [self.dataSource numberOfRows] - 1;
         }else{
-            cell.topLineView.hidden = indexPath.row != [EaseMob sharedInstance].chatManager.conversations.count - 1;
+            cell.topLineView.hidden = indexPath.row != _dataConversations.count - 1;
         }
     }else{
         cell.topLineView.hidden = indexPath.row != _searchResultArray.count - 1;
@@ -286,9 +269,8 @@
     }
     
     NSInteger unreadCount = conversation.unreadMessagesCount;
-    cell.unreadView.hidden = unreadCount == 0;
     cell.unreadLabel.hidden = unreadCount == 0;
-    cell.unreadLabel.text = [NSString stringWithFormat:@"[%ld%@]",unreadCount,[EM_ChatResourcesUtils stringWithName:@"common.message_unit"]];
+    cell.unreadLabel.text = [NSString stringWithFormat:@"%ld",unreadCount];
     
     NSMutableAttributedString *introAttributedString;
     NSString *timeString;
@@ -401,7 +383,7 @@
         if (self.dataSource) {
             conversation = [self.dataSource dataForRowAtIndex:indexPath.row];
         }else{
-            conversation = [EaseMob sharedInstance].chatManager.conversations[indexPath.row];
+            conversation = _dataConversations[indexPath.row];
         }
     }else{
         conversation = _searchResultArray[indexPath.row];
@@ -425,6 +407,24 @@
 
 #pragma mark - EMChatManagerChatDelegate
 - (void)didUpdateConversationList:(NSArray *)conversationList{
+    NSComparator comparator = ^(id obj1, id obj2){
+        EMConversation *msg1 = obj1;
+        EMConversation *msg2 = obj2;
+        
+        if (msg1.latestMessage && msg2.latestMessage) {
+            if (msg1.latestMessage.timestamp > msg2.latestMessage.timestamp) {
+                return (NSComparisonResult)NSOrderedAscending;
+            }
+            
+            if (msg1.latestMessage.timestamp < msg2.latestMessage.timestamp) {
+                return (NSComparisonResult)NSOrderedDescending;
+            }
+        }
+        return (NSComparisonResult)NSOrderedSame;
+    };
+    
+    _dataConversations = [[EaseMob sharedInstance].chatManager.conversations sortedArrayUsingComparator:comparator];
+    
     //手动向会话添加消息时
     [self endRefresh];
     if (self.isShow) {
@@ -436,7 +436,7 @@
 
 - (void)didReceiveMessage:(EMMessage *)message{
     if (self.isShow) {
-        [_tableView reloadData];
+        [self reloadData];
     }else{
         self.needReload = YES;
     }
@@ -444,7 +444,7 @@
 
 - (void)didReceiveOfflineMessages:(NSArray *)offlineMessages{
     if (self.isShow) {
-        [_tableView reloadData];
+        [self reloadData];
     }else{
         self.needReload = YES;
     }
@@ -452,7 +452,7 @@
 
 - (void)didUnreadMessagesCountChanged{
     if (self.isShow) {
-        [_tableView reloadData];
+        [self reloadData];
     }else{
         self.needReload = YES;
     }

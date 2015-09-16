@@ -18,6 +18,7 @@ typedef void (^EM_ChatOppositeHeaderManageBlock)(NSInteger section);
 @property (nonatomic, assign) NSInteger section;
 @property (nonatomic, assign) NSInteger buddyCount;
 @property (nonatomic, assign) BOOL needManage;
+@property (nonatomic, assign) CGFloat angle;
 
 - (void)setChatOppositeHeaderClickedBlock:(EM_ChatOppositeHeaderClickedBlock)block;
 - (void)setChatOppositeHeaderManageBlock:(EM_ChatOppositeHeaderManageBlock)block;

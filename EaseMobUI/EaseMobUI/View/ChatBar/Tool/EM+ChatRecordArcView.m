@@ -8,6 +8,7 @@
 
 #import "EM+ChatRecordArcView.h"
 #import "EMCDDeviceManager.h"
+#import "UIColor+Hex.h"
 #import <AVFoundation/AVFoundation.h>
 
 typedef NS_ENUM(NSUInteger,ACTION_STATE) {
@@ -180,7 +181,7 @@ typedef NS_ENUM(NSUInteger,ACTION_STATE) {
     int yHeights[6];
     float segement[6] = {0.05, 0.2, 0.35, 0.25, 0.1, 0.05};
     
-    [[UIColor colorWithRed:55/255.0 green:180/255.0 blue:252/255.0 alpha:1] set];
+    [[UIColor colorWithHexRGB:0xafa376] set];
     CGContextSetLineWidth(context, 2.0);
     
     for(int x = SOUND_METER_COUNT - 1; x >= 0; x--){
@@ -198,7 +199,7 @@ typedef NS_ENUM(NSUInteger,ACTION_STATE) {
 - (void)drawLinesWithContext:(CGContextRef)context BaseLine:(float)baseLine HeightArray:(int*)yHeights lineWidth:(CGFloat)width alpha:(CGFloat)alpha percent:(CGFloat)percent segementArray:(float *)segement{
     
     CGFloat start = 0;
-    [[UIColor colorWithRed:55/255.0 green:180/255.0 blue:252/255.0 alpha:1] set];
+    [[UIColor colorWithHexRGB:0xafa376] set];
     CGContextSetLineWidth(context, width);
     
     CGFloat HUD_SIZE = self.bounds.size.width;

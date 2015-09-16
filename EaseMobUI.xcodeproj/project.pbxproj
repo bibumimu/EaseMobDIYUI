@@ -231,6 +231,7 @@
 		B97F05501B74630D0096B98D /* EM_ChatModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = B97F054E1B74630D0096B98D /* EM_ChatModel.xcdatamodeld */; };
 		B97F05531B7465230096B98D /* EM_ChatEmoji.m in Sources */ = {isa = PBXBuildFile; fileRef = B97F05521B7465230096B98D /* EM_ChatEmoji.m */; };
 		B97F05561B7465240096B98D /* EM_ChatConversation.m in Sources */ = {isa = PBXBuildFile; fileRef = B97F05551B7465240096B98D /* EM_ChatConversation.m */; };
+		B98482091BA7B92E0099A36F /* EM+ChatMessageExtendFile.m in Sources */ = {isa = PBXBuildFile; fileRef = B98482081BA7B92E0099A36F /* EM+ChatMessageExtendFile.m */; };
 		B98CC23F1B54F705002558D2 /* EM+ChatTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = B98CC23E1B54F705002558D2 /* EM+ChatTableView.m */; };
 		B98CC2521B57D106002558D2 /* EM+ChatMessageCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B98CC2511B57D106002558D2 /* EM+ChatMessageCell.m */; };
 		B98FC8231B78538E008A95FE /* EM+AlertView.m in Sources */ = {isa = PBXBuildFile; fileRef = B98FC8221B78538E008A95FE /* EM+AlertView.m */; };
@@ -760,6 +761,8 @@
 		B97F05521B7465230096B98D /* EM_ChatEmoji.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EM_ChatEmoji.m; sourceTree = "<group>"; };
 		B97F05541B7465240096B98D /* EM_ChatConversation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EM_ChatConversation.h; sourceTree = "<group>"; };
 		B97F05551B7465240096B98D /* EM_ChatConversation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EM_ChatConversation.m; sourceTree = "<group>"; };
+		B98482071BA7B92E0099A36F /* EM+ChatMessageExtendFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "EM+ChatMessageExtendFile.h"; sourceTree = "<group>"; };
+		B98482081BA7B92E0099A36F /* EM+ChatMessageExtendFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "EM+ChatMessageExtendFile.m"; sourceTree = "<group>"; };
 		B98CC23D1B54F705002558D2 /* EM+ChatTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "EM+ChatTableView.h"; sourceTree = "<group>"; };
 		B98CC23E1B54F705002558D2 /* EM+ChatTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "EM+ChatTableView.m"; sourceTree = "<group>"; };
 		B98CC2501B57D106002558D2 /* EM+ChatMessageCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "EM+ChatMessageCell.h"; sourceTree = "<group>"; };
@@ -1746,6 +1749,8 @@
 				B9CC7FED1BA17EB9002C6816 /* EM+ChatMessageExtendBody.m */,
 				B9CC7FE91BA179DD002C6816 /* EM+ChatMessageExtendCall.h */,
 				B9CC7FEA1BA179DD002C6816 /* EM+ChatMessageExtendCall.m */,
+				B98482071BA7B92E0099A36F /* EM+ChatMessageExtendFile.h */,
+				B98482081BA7B92E0099A36F /* EM+ChatMessageExtendFile.m */,
 			);
 			path = Message;
 			sourceTree = "<group>";
@@ -2336,6 +2341,7 @@
 				B93227DE1B90B92D00B553C1 /* GPUImageChromaKeyFilter.m in Sources */,
 				B93228391B90B92D00B553C1 /* GPUImagePosterizeFilter.m in Sources */,
 				B93228201B90B92D00B553C1 /* GPUImageMaskFilter.m in Sources */,
+				B98482091BA7B92E0099A36F /* EM+ChatMessageExtendFile.m in Sources */,
 				B98FC8AE1B788216008A95FE /* HTTPMessage.m in Sources */,
 				B93227CF1B90B92D00B553C1 /* GPUImage3x3TextureSamplingFilter.m in Sources */,
 				B96EA21D1B8B1C2A00F9527A /* EM+ChatOppositeHeader.m in Sources */,

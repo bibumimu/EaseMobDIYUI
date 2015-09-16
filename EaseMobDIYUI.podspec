@@ -89,4 +89,5 @@ Pod::Spec.new do |s|
   s.dependency "SWTableViewCell", "0.3.7"
   s.dependency "FXBlurView","1.6.3"
   s.dependency "JSONModel","1.1.0"
+  s.dependency "pop","1.0.7"
 end

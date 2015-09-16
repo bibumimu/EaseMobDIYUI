@@ -36,15 +36,17 @@
             [menuItems addObject:copyItem];
         }else if (messageBody.messageBodyType == eMessageBodyType_Image){
             //收藏到表情
-            UIMenuItem *collectFaceItem = [[UIMenuItem alloc]initWithTitle:[EM_ChatResourcesUtils stringWithName:@"common.collect_face"] action:@selector(collectEMMessageFace:)];
-            [menuItems addObject:collectFaceItem];
+            //暂时屏蔽收藏到表情
+//            UIMenuItem *collectFaceItem = [[UIMenuItem alloc]initWithTitle:[EM_ChatResourcesUtils stringWithName:@"common.collect_face"] action:@selector(collectEMMessageFace:)];
+//            [menuItems addObject:collectFaceItem];
         }else if (messageBody.messageBodyType == eMessageBodyType_File){
             //下载,如果未下载
-            EMFileMessageBody *fileBody = (EMFileMessageBody *)messageBody;
-            if (fileBody.attachmentDownloadStatus == EMAttachmentNotStarted) {
-                UIMenuItem *downloadItem = [[UIMenuItem alloc]initWithTitle:[EM_ChatResourcesUtils stringWithName:@"common.download"] action:@selector(downloadEMMessageFile:)];
-                [menuItems addObject:downloadItem];
-            }
+            //暂时屏蔽下载
+//            EMFileMessageBody *fileBody = (EMFileMessageBody *)messageBody;
+//            if (fileBody.attachmentDownloadStatus == EMAttachmentNotStarted) {
+//                UIMenuItem *downloadItem = [[UIMenuItem alloc]initWithTitle:[EM_ChatResourcesUtils stringWithName:@"common.download"] action:@selector(downloadEMMessageFile:)];
+//                [menuItems addObject:downloadItem];
+//            }
         }
         
         if (messageBody.messageBodyType != eMessageBodyType_Video) {
@@ -59,9 +61,9 @@
         
         if (messageBody.messageBodyType != eMessageBodyType_Voice) {
             //转发
-            
-            UIMenuItem *forwardItem = [[UIMenuItem alloc]initWithTitle:[EM_ChatResourcesUtils stringWithName:@"common.forward"] action:@selector(forwardEMMessage:)];
-            [menuItems addObject:forwardItem];
+            //暂时屏蔽转发
+//            UIMenuItem *forwardItem = [[UIMenuItem alloc]initWithTitle:[EM_ChatResourcesUtils stringWithName:@"common.forward"] action:@selector(forwardEMMessage:)];
+//            [menuItems addObject:forwardItem];
             
             //转发多条
         }

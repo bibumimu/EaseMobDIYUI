@@ -88,6 +88,11 @@
     _arrowLabel.text = _arrow;
 }
 
+- (void)setAngle:(CGFloat)angle{
+    _angle = angle;
+    _arrowLabel.transform = CGAffineTransformMakeRotation(angle);
+}
+
 - (void)setTitle:(NSString *)title{
     _title = title;
     _titleLabel.text = _title;

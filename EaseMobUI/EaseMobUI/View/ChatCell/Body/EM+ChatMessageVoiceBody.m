@@ -27,7 +27,7 @@
         CGSize size;
         
         EMVoiceMessageBody *voiceBody = (EMVoiceMessageBody *)message.messageBody;
-        size = CGSizeMake(voiceBody.duration * 4 + 44, 20);
+        size = CGSizeMake(voiceBody.duration * 4 + 50, 24);
         size.height += config.bodyVoicePadding * 2;
         size.width += config.bodyVoicePadding * 2;
         
@@ -56,16 +56,16 @@
 - (void)layoutSubviews{
     [super layoutSubviews];
     CGSize size = self.frame.size;
+    [timeLabel sizeToFit];
     
-    CGSize timeSize = [timeLabel.text sizeWithAttributes:@{NSFontAttributeName:timeLabel.font}];
-    timeSize.height = size.height;
+    animationView.bounds = CGRectMake(0, 0, size.height - self.config.bodyVoicePadding * 2, size.height - self.config.bodyVoicePadding * 2);
     
     if (self.message.sender) {
-        timeLabel.frame = CGRectMake(self.config.bodyVoicePadding, self.config.bodyVoicePadding, timeSize.width, timeSize.height);
-        animationView.frame = CGRectMake(size.width - timeSize.height, self.config.bodyVoicePadding, timeSize.height, timeSize.height);
+        timeLabel.center = CGPointMake(self.config.bodyVoicePadding + timeLabel.frame.size.width / 2, size.height / 2);
+        animationView.center = CGPointMake(size.width - self.config.bodyVoicePadding - animationView.frame.size.width / 2, size.height / 2);
     }else{
-        timeLabel.frame = CGRectMake(size.width - timeSize.width, self.config.bodyVoicePadding, timeSize.width, timeSize.height);
-        animationView.frame = CGRectMake(self.config.bodyVoicePadding, self.config.bodyVoicePadding, timeSize.height, timeSize.height);
+        timeLabel.center = CGPointMake(size.width - self.config.bodyVoicePadding - timeLabel.frame.size.width / 2, size.height / 2);
+        animationView.center = CGPointMake(self.config.bodyVoicePadding + animationView.frame.size.width / 2, size.height / 2);
     }
 }
 
@@ -89,6 +89,7 @@
     timeLabel.text = time;
     
     if (self.message.sender) {
+        timeLabel.textColor = [UIColor whiteColor];
         [animationView setAnimationImages:@[
                                             [EM_ChatResourcesUtils cellImageWithName:@"voice_right_1"],
                                             [EM_ChatResourcesUtils cellImageWithName:@"voice_right_2"],
@@ -96,6 +97,7 @@
                                             ]];
         animationView.image = [EM_ChatResourcesUtils cellImageWithName:@"voice_right_3"];
     }else{
+        timeLabel.textColor = [UIColor blackColor];
         [animationView setAnimationImages:@[
                                             [EM_ChatResourcesUtils cellImageWithName:@"voice_left_1"],
                                             [EM_ChatResourcesUtils cellImageWithName:@"voice_left_2"],

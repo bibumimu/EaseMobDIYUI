@@ -29,9 +29,9 @@
     config.bodyTextPadding = 8;
     config.bodyImagePadding = 0;
     config.bodyVideoPadding = 0;
-    config.bodyVoicePadding = 2;
+    config.bodyVoicePadding = 6;
     config.bodyLocationPadding = 0;
-    config.bodyFilePadding = 2;
+    config.bodyFilePadding = 4;
     return config;
 }
 

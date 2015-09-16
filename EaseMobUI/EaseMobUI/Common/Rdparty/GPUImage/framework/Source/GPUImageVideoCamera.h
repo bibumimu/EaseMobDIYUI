@@ -17,6 +17,7 @@ extern NSString *const kGPUImageYUVVideoRangeConversionForLAFragmentShaderString
 
 @optional
 - (void)willOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer;
+- (void)didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer;
 @end
 
 

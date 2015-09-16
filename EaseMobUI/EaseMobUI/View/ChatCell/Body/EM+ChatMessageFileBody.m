@@ -9,7 +9,10 @@
 #import "EM+ChatMessageFileBody.h"
 #import "EM+ChatMessageModel.h"
 #import "EM+ChatFileUtils.h"
+#import "EM+ChatResourcesUtils.h"
 #import "EM+ChatMessageUIConfig.h"
+
+#import "EM+ChatMessageExtendFile.h"
 
 @implementation EM_ChatMessageFileBody{
     UIImageView *fileView;
@@ -36,7 +39,6 @@
     self = [super init];
     if (self) {
         fileView = [[UIImageView alloc]init];
-        fileView.backgroundColor = [UIColor grayColor];
         [self addSubview:fileView];
         
         nameLabel = [[UILabel alloc]init];
@@ -44,6 +46,7 @@
         nameLabel.numberOfLines = 0;
         nameLabel.lineBreakMode = NSLineBreakByTruncatingMiddle;
         nameLabel.textColor = [UIColor blackColor];
+        nameLabel.font = [UIFont systemFontOfSize:12];
         [self addSubview:nameLabel];
         
         sizeLabel = [[UILabel alloc]init];
@@ -77,6 +80,11 @@
     
     nameLabel.text = fileBody.displayName;
     sizeLabel.text = [EM_ChatFileUtils stringFileSize:fileBody.fileLength];
+    
+    EM_ChatMessageExtendFile *extendBody = (EM_ChatMessageExtendFile *)self.message.messageExtend.extendBody;
+    if (extendBody.fileType && extendBody.fileType.length > 0) {
+        fileView.image = [EM_ChatResourcesUtils fileImageWithName:extendBody.fileType];
+    }
 }
 
 @end

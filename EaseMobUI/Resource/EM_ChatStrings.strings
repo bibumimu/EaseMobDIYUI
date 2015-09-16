@@ -87,6 +87,11 @@ call.message.hint.opposite_cancel = "对方已取消，点击回拨";
 call.message.hint.own_cancel = "已取消，点击重拨";
 call.message.hint.end = "通话时间%@，点击重拨";
 call.message.hint.opposite_no_response = "对方未接听，点击重拨";
+call.title_interrupt = "挂断";
+call.title_reject = "拒绝";
+call.title_agree  = "接听";
+call.title_silence = "静音";
+call.title_expand = "免提";
 
 file.document = "文档";
 file.video = "视频";
@@ -127,3 +132,4 @@ error.record.failure = "录音失败";
 error.hint.function_null = "功能未实现";
 error.hint.vioce = "无法开始实时语音";
 error.hint.video = "无法开始实时视频";
+error.hint.open_frontCamera = "该设备不支持视频";

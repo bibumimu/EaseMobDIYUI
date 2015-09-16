@@ -21,7 +21,6 @@
 @property (nonatomic, strong, readonly) UILabel *nameLabel;
 @property (nonatomic, strong, readonly) UILabel *introLabel;
 @property (nonatomic, strong, readonly) UILabel *timeLabel;
-@property (nonatomic, strong, readonly) UIView *unreadView;
 @property (nonatomic, strong, readonly) UILabel *unreadLabel;
 
 @end

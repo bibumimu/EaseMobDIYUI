@@ -124,6 +124,14 @@
     }
 }
 
+- (CGFloat)titleHeight{
+    if (_actionLabel.hidden) {
+        return 0;
+    }else{
+        return _actionLabel.frame.size.height;
+    }
+}
+
 - (void)setEM_ChatActionBlcok:(EM_ChatActionBlcok )block{
     _block = block;
 }

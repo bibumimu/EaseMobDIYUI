@@ -60,7 +60,7 @@
     [[EaseMobUIClient sharedInstance] registerForRemoteNotificationsWithApplication:application];
     
     [[EaseMobUIClient sharedInstance] registerExtendClass:[UserCustomExtend class]];
-   
+    [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
     return YES;
 }
 

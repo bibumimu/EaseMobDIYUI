@@ -63,7 +63,6 @@
         textLabel.contentMode = UIViewContentModeCenter;
         textLabel.numberOfLines = 0;
         textLabel.lineBreakMode = NSLineBreakByCharWrapping;
-        textLabel.textColor = [UIColor blackColor];
         [self addSubview:textLabel];
     }
     return self;
@@ -91,6 +90,11 @@
 - (void)setMessage:(EM_ChatMessageModel *)message{
     [super setMessage:message];
     EMTextMessageBody *textBody = (EMTextMessageBody *)message.messageBody;
+    if (self.message.sender) {
+        textLabel.textColor = [UIColor whiteColor];
+    }else{
+        textLabel.textColor = [UIColor blackColor];
+    }
     textLabel.text = textBody.text;
     self.needTap = [self.message.messageExtend.identifier isEqualToString:kIdentifierForCall];
 }

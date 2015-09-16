@@ -32,7 +32,7 @@
     if (message) {
         EM_ChatMessageModel *model = [[EM_ChatMessageModel alloc]init];
         model.message = message;
-        
+        model.messageExtend = [[EM_ChatMessageExtend alloc]initWithDictionary:message.ext error:nil];
         NSDictionary *extendBody = message.ext[@"extendBody"];
         NSString *identifier  = message.ext[kIdentifier];
         Class cls = [[EaseMobUIClient sharedInstance] classForExtendWithIdentifier:identifier];

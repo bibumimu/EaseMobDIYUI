@@ -37,6 +37,9 @@ pod 'FXBlurView','1.6.3'
 #JSONModel
 pod 'JSONModel','1.1.0'
 
+#动画
+pod 'pop','1.0.7'
+
 #Toast
 pod 'Toast','2.4'
 

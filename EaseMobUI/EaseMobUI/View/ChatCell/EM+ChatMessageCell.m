@@ -82,7 +82,7 @@
         [self.contentView addSubview:_tailView];
         
         _bubbleView = [[EM_ChatMessageBubble alloc]initWithBodyClass:bodyClass withExtendClass:extendClass];
-        _bubbleView.layer.cornerRadius = 6;
+        _bubbleView.layer.cornerRadius = 8;
         _bubbleView.layer.masksToBounds = YES;
         _bubbleView.bodyView.delegate = self;
         _bubbleView.extendView.delegate = self;
@@ -187,16 +187,16 @@
     
     if (_message.sender) {
         _nameLabel.textAlignment = NSTextAlignmentRight;
-        _bubbleView.backgroundView.backgroundColor = [UIColor colorWithHEX:@"#EED2EE" alpha:1.0];
+        _bubbleView.backgroundView.backgroundColor = [UIColor colorWithHexRGB:0xafa376];
         _tailView.text = kEMChatIconBubbleTailRight;
     }else{
         _nameLabel.textAlignment = NSTextAlignmentLeft;
-        _bubbleView.backgroundView.backgroundColor = [UIColor colorWithHEX:@"#B5B5B5" alpha:1.0];
+        _bubbleView.backgroundView.backgroundColor = [UIColor whiteColor];
         _tailView.text = kEMChatIconBubbleTailLeft;
     }
     [_tailView sizeToFit];
     _tailView.textColor = _bubbleView.backgroundView.backgroundColor;
-    _tailView.hidden = self.message.messageBody.messageBodyType == eMessageBodyType_Image;
+    _tailView.hidden = self.message.messageBody.messageBodyType == eMessageBodyType_Image || self.message.messageBody.messageBodyType == eMessageBodyType_Video;
     _bubbleView.message = _message;
     
     _timeLabel.text = [EM_ChatDateUtils stringFormatterMessageDateFromTimeInterval:message.message.timestamp / 1000];

@@ -7,26 +7,31 @@
 //
 
 #import <Foundation/Foundation.h>
+@class EM_ChatMessageModel;
 
 @protocol EM_ChatMessageManagerDelegate;
 
 @interface EM_ChatMessageManager : NSObject
 
-@property (nonatomic,assign,readonly) BOOL isPlaying;
-@property (nonatomic,weak) id<EM_ChatMessageManagerDelegate> delegate;
+@property (nonatomic, assign, readonly) BOOL isPlaying;
+@property (nonatomic, weak) id<EM_ChatMessageManagerDelegate> delegate;
 
 + (instancetype)defaultManager;
-- (void)showBrowserWithImagesMessage:(NSArray *)imageMessageArray index:(NSInteger)index;
+
+//查看图片
+- (void)showBrowserWithImagesMessage:(NSArray *)imageArray index:(NSInteger)index;
+//播放视频
 - (void)showBrowserWithVideoMessage:(id)videoMessage;
 
-- (void)playVoice:(NSArray *)voiceMessageArray index:(NSInteger)index;
+//播放语音
+- (void)playVoice:(NSArray *)voiceArray index:(NSInteger)index;
 - (void)stopVoice;
 
 @end
 
 @protocol EM_ChatMessageManagerDelegate <NSObject>
 
-- (void)playStartWithMessage:(id)startMessage;
-- (void)playCompletionWithMessage:(id)completionMessage nextMessage:(id)nextMessage;
+- (void)didStartPlayWithMessage:(EM_ChatMessageModel *)next previous:(EM_ChatMessageModel *)previous;
+- (void)didEndPlayWithMessage:(EM_ChatMessageModel *)message;
 
 @end
