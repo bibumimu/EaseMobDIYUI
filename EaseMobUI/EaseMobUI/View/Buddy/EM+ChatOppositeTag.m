@@ -13,6 +13,7 @@
 @implementation EM_ChatOppositeTag{
     UILabel *titleLabel;
     UIButton *iconView;
+    UILabel *badgeLabel;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame{
@@ -29,8 +30,32 @@
         iconView.enabled = NO;
         [iconView setTitleColor:[UIColor colorWithHexRGB:TEXT_NORMAL_COLOR] forState:UIControlStateNormal];
         [self.contentView addSubview:iconView];
+        
+        badgeLabel = [[UILabel alloc]init];
+        badgeLabel.font = [UIFont systemFontOfSize:12];
+        badgeLabel.textColor = [UIColor whiteColor];
+        badgeLabel.textAlignment = NSTextAlignmentCenter;
+        badgeLabel.backgroundColor = [UIColor redColor];
+        badgeLabel.layer.masksToBounds = YES;
+        [self.contentView addSubview:badgeLabel];
     }
     return self;
+}
+
+- (void)layoutSubviews{
+    [super layoutSubviews];
+    
+    CGSize size = self.frame.size;
+    
+    [badgeLabel sizeToFit];
+    CGRect bounds = badgeLabel.bounds;
+    bounds.size.width = bounds.size.height = bounds.size.width > bounds.size.height ? bounds.size.width : bounds.size.height;
+    bounds.size.width += 2;
+    bounds.size.height += 2;
+    badgeLabel.bounds = bounds;
+    
+    badgeLabel.center = CGPointMake(size.width - badgeLabel.frame.size.width, badgeLabel.frame.size.height);
+    badgeLabel.layer.cornerRadius = badgeLabel.frame.size.height / 2;
 }
 
 - (void)setTagSelected:(BOOL)tagSelected{
@@ -66,6 +91,12 @@
     _icon = icon;
     [iconView setTitle:_icon forState:UIControlStateNormal];
     [iconView setImage:nil forState:UIControlStateNormal];
+}
+
+- (void)setBadge:(NSString *)badge{
+    _badge = badge;
+    badgeLabel.text = _badge;
+    badgeLabel.hidden = !_badge || _badge.length == 0;
 }
 
 @end

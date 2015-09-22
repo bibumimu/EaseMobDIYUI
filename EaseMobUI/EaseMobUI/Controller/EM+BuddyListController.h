@@ -124,6 +124,15 @@
 - (NSString *)iconForTagAtIndex:(NSInteger)index;
 
 /**
+ *  角标
+ *
+ *  @param index
+ *
+ *  @return 
+ */
+- (NSString *)badgeForTagAtIndex:(NSInteger)index;
+
+/**
  *  是否显示分组管理菜单
  *
  *  @return

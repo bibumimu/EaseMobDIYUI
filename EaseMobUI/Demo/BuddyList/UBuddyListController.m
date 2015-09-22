@@ -8,10 +8,12 @@
 
 #import "UBuddyListController.h"
 #import "UChatController.h"
+#import "UAddBuddyController.h"
 
 #import "EM+ChatOppositeTag.h"
 #import "EM+ChatBuddy.h"
 
+#import "UResourceUtils.h"
 #import "EM+ChatResourcesUtils.h"
 
 #import <EaseMobSDKFull/EaseMob.h>
@@ -60,6 +62,17 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    UIButton *addBuddy = [UIButton buttonWithType:UIButtonTypeCustom];
+    addBuddy.titleLabel.font = [UResourceUtils iconFontWithSize:18];
+    [addBuddy setTitle:@"\ue600" forState:UIControlStateNormal];
+    [addBuddy setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
+    [addBuddy setTitleColor:[UIColor grayColor] forState:UIControlStateHighlighted];
+    [addBuddy addTarget:self action:@selector(addBuddyClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [addBuddy sizeToFit];
+    UIBarButtonItem *rightItem = [[UIBarButtonItem alloc]initWithCustomView:addBuddy];
+    self.navigationItem.rightBarButtonItem = rightItem;
+    
     [[EaseMob sharedInstance].chatManager removeDelegate:self];
     [[EaseMob sharedInstance].chatManager addDelegate:self delegateQueue:nil];
     [[EaseMob sharedInstance].chatManager asyncFetchBuddyList];
@@ -73,9 +86,14 @@
     }
 }
 
+- (void)addBuddyClicked:(id)sender{
+    UAddBuddyController *controller = [[UAddBuddyController alloc]init];
+    [self.navigationController pushViewController:controller animated:YES];
+}
+
 #pragma mark - EM_ChatBuddyListControllerDataSource
 - (BOOL)shouldShowSearchBar{
-    return NO;
+    return YES;
 }
 
 - (BOOL)shouldShowTagBar{
@@ -90,7 +108,6 @@
 - (EM_ChatOpposite *)dataForSearchRowAtIndex:(NSInteger)index{
     return searchArray[index];
 }
-
 
 //tags
 - (NSInteger)numberOfTags{
@@ -107,6 +124,10 @@
 
 - (NSString *)iconForTagAtIndex:(NSInteger)index{
     return icons[index];
+}
+
+- (NSString *)badgeForTagAtIndex:(NSInteger)index{
+    return [NSString stringWithFormat:@"%ld",index];
 }
 
 //group

@@ -117,20 +117,6 @@ UICollectionViewDelegateFlowLayout>
     [_tableView reloadData];
 }
 
-- (void)reloadOppositeGroup:(NSInteger)index isExpand:(BOOL)expand{
-    if (self.dataSource && [self.dataSource respondsToSelector:@selector(numberOfGroups)]) {
-        NSInteger groupCount = [self.dataSource numberOfGroups];
-        if (index >= 0 && index < groupCount) {
-            if (expand) {
-                [_tableView reloadSections:[NSIndexSet indexSetWithIndex:index] withRowAnimation:UITableViewRowAnimationBottom];
-            }else{
-                [_tableView reloadSections:[NSIndexSet indexSetWithIndex:index] withRowAnimation:UITableViewRowAnimationTop];
-            }
-            
-        }
-    }
-}
-
 - (void)startRefresh{
     [_tableView.header beginRefreshing];
 }
@@ -200,6 +186,12 @@ UICollectionViewDelegateFlowLayout>
         cell.font = font;
         cell.icon = icon;
     }
+    
+    NSString *badge = nil;
+    if (self.dataSource && [self.dataSource respondsToSelector:@selector(badgeForTagAtIndex:)]) {
+        badge = [self.dataSource badgeForTagAtIndex:indexPath.row];
+    }
+    cell.badge = badge;
     
     return cell;
 }
@@ -280,7 +272,7 @@ UICollectionViewDelegateFlowLayout>
         
         NSInteger rowCount = 0;
         BOOL expand = YES;
-        if (tableView.numberOfSections > 1 && self.dataSource && [self.dataSource respondsToSelector:@selector(shouldExpandForGroupAtIndex:)]) {
+        if (self.dataSource && [self.dataSource respondsToSelector:@selector(shouldExpandForGroupAtIndex:)]) {
             expand = [self.dataSource shouldExpandForGroupAtIndex:section];
         }
         if (expand) {
