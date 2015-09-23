@@ -3,7 +3,7 @@ platform :ios, '7.0'
 
 #环信
 #pod 'EaseMobSDKFull','2.1.7'
-pod 'EaseMobSDKFull', :git => '/Users/ZhouYuzhen/Documents/Git/EaseMobSDKFull'
+pod 'EaseMobSDKFull', :git => '/Users/ZhouYuzhen/Documents/Git/IOS/EaseMobSDKFull'
 
 #图片加载
 pod 'SDWebImage','3.7.3'
@@ -23,7 +23,7 @@ pod 'TTTAttributedLabel','1.13.4'
 #Cell左滑出现多个按钮
 pod 'SWTableViewCell','0.3.7'
 
-pod 'VoiceConvert',:git => 'https://github.com/AwakenDragon/VoiceConvert.git'
+pod 'VoiceConvert',:git => '/Users/ZhouYuzhen/Documents/Git/IOS/VoiceConvert'
 
 #图片选择
 pod 'MLSelectPhoto','1.2.1'

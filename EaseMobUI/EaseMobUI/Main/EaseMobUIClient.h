@@ -98,6 +98,10 @@ extern NSString * const kEMCallTypeVideo;
 
 @optional
 
+/**
+ * 返回当前登录的用户信息
+ *
+ */
 - (EM_ChatUser *)userForEMChat;
 
 @end

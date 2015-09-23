@@ -13,7 +13,7 @@
 @interface EM_ChatMessageExtendBody : JSONModel
 
 /**
- *  扩展标示
+ *  扩展标示，iOS和Android两个平台必须一致
  *
  *  @return
  */

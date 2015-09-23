@@ -144,7 +144,7 @@
 /**
  *  好友分组数量
  *
- *  @return 默认1,如果为1则不显示分组
+ *  @return 默认1
  */
 - (NSInteger)numberOfGroups;
 
@@ -207,8 +207,7 @@
 /**
  *  好友，群或者讨论组被点击
  *
- *  @param rowIndex
- *  @param groupIndex
+ *  @param opposite
  */
 - (void)didSelectedWithOpposite:(EM_ChatOpposite *)opposite;
 
