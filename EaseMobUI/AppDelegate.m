@@ -17,6 +17,8 @@
 #import "DDLog.h"
 #import "DDTTYLogger.h"
 
+#import "UserCustomExtend.h"
+
 #import <EaseMobSDKFull/EaseMob.h>
 #import <Toast/UIView+Toast.h>
 
@@ -52,27 +54,49 @@
     self.window.rootViewController = rootController;
     [self.window makeKeyAndVisible];
     
-    [EaseMobUIClient sharedInstance];
     [[EaseMob sharedInstance] registerSDKWithAppKey:EaseMob_AppKey apnsCertName:EaseMob_APNSCertName];
-    [[EaseMob sharedInstance] application:application didFinishLaunchingWithOptions:launchOptions];
     [[EaseMob sharedInstance].chatManager addDelegate:self delegateQueue:nil];
-    if ([application respondsToSelector:@selector(registerForRemoteNotifications)]) {
-        [application registerForRemoteNotifications];
-        UIUserNotificationType notificationTypes = UIUserNotificationTypeBadge |
-        UIUserNotificationTypeSound |
-        UIUserNotificationTypeAlert;
-        UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:notificationTypes categories:nil];
-        [application registerUserNotificationSettings:settings];
-    }else{
-        UIRemoteNotificationType notificationTypes = UIRemoteNotificationTypeBadge |
-        UIRemoteNotificationTypeSound |
-        UIRemoteNotificationTypeAlert;
-        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:notificationTypes];
-    }
-
+    [[EaseMobUIClient sharedInstance] application:application didFinishLaunchingWithOptions:launchOptions];
+    [[EaseMobUIClient sharedInstance] registerForRemoteNotificationsWithApplication:application];
+    
+    [[EaseMobUIClient sharedInstance] registerExtendClass:[UserCustomExtend class]];
+    [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
     return YES;
 }
 
+- (void)applicationProtectedDataWillBecomeUnavailable:(UIApplication *)application{
+    [[EaseMobUIClient sharedInstance] applicationProtectedDataWillBecomeUnavailable:application];
+}
+
+- (void)applicationProtectedDataDidBecomeAvailable:(UIApplication *)application{
+    [[EaseMobUIClient sharedInstance] applicationProtectedDataDidBecomeAvailable:application];
+}
+
+- (void)applicationWillResignActive:(UIApplication *)application {
+    [[EaseMobUIClient sharedInstance] applicationWillResignActive:application];
+}
+
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+    [[EaseMobUIClient sharedInstance] applicationDidBecomeActive:application];
+}
+
+- (void)applicationWillEnterForeground:(UIApplication *)application {
+    [[EaseMobUIClient sharedInstance] applicationWillEnterForeground:application];
+}
+
+- (void)applicationDidEnterBackground:(UIApplication *)application {
+    [[EaseMobUIClient sharedInstance] applicationDidEnterBackground:application];
+}
+
+- (void)applicationDidReceiveMemoryWarning:(UIApplication *)application{
+    [[EaseMobUIClient sharedInstance] applicationDidReceiveMemoryWarning:application];
+}
+
+- (void)applicationWillTerminate:(UIApplication *)application {
+    [[EaseMobUIClient sharedInstance] applicationWillTerminate:application];
+}
+
+//notiications
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken{
     [[EaseMob sharedInstance] application:application didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
 }
@@ -81,24 +105,12 @@
     [[EaseMob sharedInstance] application:application didFailToRegisterForRemoteNotificationsWithError:error];
 }
 
-- (void)applicationWillResignActive:(UIApplication *)application {
-    
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo{
+    [[EaseMobUIClient sharedInstance] application:application didReceiveRemoteNotification:userInfo];
 }
 
-- (void)applicationDidBecomeActive:(UIApplication *)application {
-    
-}
-
-- (void)applicationDidEnterBackground:(UIApplication *)application {
-    [[EaseMobUIClient sharedInstance] applicationDidEnterBackground:application];
-}
-
-- (void)applicationWillEnterForeground:(UIApplication *)application {
-    [[EaseMobUIClient sharedInstance] applicationWillEnterForeground:application];
-}
-
-- (void)applicationWillTerminate:(UIApplication *)application {
-    [[EaseMobUIClient sharedInstance] applicationWillTerminate:application];
+- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification{
+    [[EaseMobUIClient sharedInstance] application:application didReceiveLocalNotification:notification];
 }
 
 - (void)changeRootControllerToMain{

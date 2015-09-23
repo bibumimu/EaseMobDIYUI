@@ -10,6 +10,7 @@
 #import "EM+ChatUIConfig.h"
 #import "EM+ChatMessageModel.h"
 @class EM_ChatOpposite;
+@class EM_ChatUser;
 
 @protocol EM_ChatControllerDelegate;
 
@@ -20,6 +21,8 @@
  */
 @property (nonatomic, strong, readonly) EMConversation *conversation;
 
+@property (nonatomic, strong, readonly) EM_ChatOpposite *opposite;
+@property (nonatomic, strong, readonly) EM_ChatUser *user;
 @property (nonatomic,weak) id<EM_ChatControllerDelegate> delegate;
 
 - (instancetype)initWithOpposite:(EM_ChatOpposite *)opposite;
@@ -29,6 +32,10 @@
 - (instancetype)initWithConversation:(EMConversation *)conversation;
 
 - (void)sendMessage:(EM_ChatMessageModel *)message;
+
+- (void)dismissKeyboard;
+
+- (void)dismissMoreTool;
 
 @end
 
@@ -50,11 +57,9 @@
  *
  *  @param body 消息内容
  *
- *  @param type 消息类型
- *
- *  @return 扩展
+ *  @return
  */
-- (EM_ChatMessageExtend *)extendForMessage:(id)body messageType:(MessageBodyType)type;
+- (void)extendForMessage:(EM_ChatMessageModel *)message;
 
 /**
  *  是否允许发送消息

@@ -25,10 +25,10 @@
 * [期望](#3)
   
 <h2 id = "1">简介</h2>
-集成环信的即时通讯功能，pod集成，方便管理。简单继承，轻松定制自己的UI界面。当前最新版本```0.2.4```,主要由会话列表(```EM_ConversationListController```)、好友列表(```EM_FriendsController```)和聊天界面(```EM_ChatController```)组成。很多功能和界面都在开发中，聊天界面的UI也没有开发完善，所以现在显示很挫。在```1.0.0```版本之前会完成所有可以使用环信SDK实现的功能，并且加入其它实用的功能，在此之前也不适合使用。当然你也可以参考环信的[Demo](http://www.easemob.com/downloads)。
+集成环信的即时通讯功能，pod集成，方便管理。简单继承，轻松定制自己的UI界面。当前最新版本```0.2.5```,主要由会话列表(```EM_ConversationListController```)、好友列表(```EM_FriendsController```)和聊天界面(```EM_ChatController```)组成。很多功能和界面都在开发中，聊天界面的UI也没有开发完善，所以现在显示很挫。在```1.0.0```版本之前会完成所有可以使用环信SDK实现的功能，并且加入其它实用的功能，在此之前也不适合使用。当然你也可以参考环信的[Demo](http://www.easemob.com/downloads)。
 
 <h3 id = "1.1">环信SDK</h3>
-使用pod集成的[EaseMobSDKFull](https://github.com/easemob/sdk-ios-cocoapods-integration)，集成版本```2.2.0```。因为pod集成[EaseMobSDK](https://github.com/easemob/sdk-ios-cocoapods/tree/master/EaseMobSDK)是没有语音和视频通讯功能的。根据环信的官方文档来看，pod集成的是私有库，cocoapods公共库上得SDK已经弃用了。所以需要大家自己单独pod环信SDK
+使用pod集成的[EaseMobSDKFull](https://github.com/easemob/sdk-ios-cocoapods-integration)，集成版本```2.2.0```。因为pod集成[EaseMobSDK](https://github.com/easemob/sdk-ios-cocoapods/tree/master/EaseMobSDK)是没有语音和视频通讯功能的。根据环信的官方文档来看，pod集成的是私有库，cocoapods公共库上的SDK已经弃用了。所以需要大家自己单独pod环信SDK
 
 <h3 id = "1.2">额外功能</h3>
 - 会话编辑状态保存
@@ -66,9 +66,12 @@ pod 'VoiceConvert',:git => "https://github.com/AwakenDragon/VoiceConvert.git"
 - ```'TTTAttributedLabel', '1.13.4'``` 富文本显示 [TTTAttributedLabel](https://github.com/TTTAttributedLabel/TTTAttributedLabel)
 - ```'SWTableViewCell','0.3.7'```   Cell左滑显示自定按钮 [SWTableViewCell](https://github.com/CEWendel/SWTableViewCell)
 - ```'FXBlurView','1.6.3'``` 毛玻璃效果  [FXBlurView](https://github.com/nicklockwood/FXBlurView)
-- ```'JSONModel','1.1.0'    JSON数据解析 [JSONModel](https://github.com/icanzilb/JSONModel)
-
-所以你不需要再额外pod这些了。
+- ```'JSONModel','1.1.0'```    JSON数据解析 [JSONModel](https://github.com/icanzilb/JSONModel)
+- ```'pop','1.0.7'```       View动画  [pop](https://github.com/facebook/pop)
+- ```GPUImage```          图片及视频处理，pod运行的时候报错，暂时直接将代码放到了项目里 [GPUImage](https://github.com/BradLarson/GPUImage)
+- ```CocoaHTTPServer```   用来实现WiFi文件上传，pod无效   [CocoaHTTPServer](https://github.com/robbiehanson/CocoaHTTPServer)
+- ```Emoji```       Emoji表情，无法pod   [Emoji](https://github.com/limejelly/Emoji)
+所以你不需要再额外pod这些了。后期我会对依赖做适当的增加或删除。
 
 **注意：**在pod完成开始运行的时候， [EaseMobSDKFull](https://github.com/easemob/sdk-ios-cocoapods-integration.git)
 的一个文件*```EMErrorDefs.h```*可能会报错，具体原因是几个枚举没有或者重复。
@@ -81,69 +84,101 @@ pod 'VoiceConvert',:git => "https://github.com/AwakenDragon/VoiceConvert.git"
 
 <h3 id = "2.4">初始化及权限</h3>
 <h4 id = "2.4.1">初始化</h4>
-在```AppDelegate```中初始化
-
+在```AppDelegate```中添加
 ```
-#import "AppDelegate.h"
 #import "EaseMobUIClient.h"
 #import "EaseMob.h"
-
-@interface AppDelegate ()<EM_ChatUserDelegate>
-
-@end
-
-@implementation AppDelegate
-
+```
+```
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    
-    self.window = [[UIWindow alloc]initWithFrame:[UIScreen mainScreen].bounds];
-    self.window.backgroundColor = [UIColor whiteColor];
-
-    //初始化，并设置用户代理
-    [EaseMobUIClient sharedInstance].userDelegate = self;
-    [EaseMobUIClient sharedInstance].oppositeDelegate = self;
-
-    //初始化环信
     [[EaseMob sharedInstance] registerSDKWithAppKey:EaseMob_AppKey apnsCertName:EaseMob_APNSCertName];
-    [[EaseMob sharedInstance] application:application didFinishLaunchingWithOptions:launchOptions];
-    //登录环信
-    [[EaseMob sharedInstance].chatManager asyncLoginWithUsername:@"你的用户名" password:@"你的密码" completion:^(NSDictionary *loginInfo, EMError *error) {
-    } onQueue:nil];
-    
+    [[EaseMobUIClient sharedInstance] application:application didFinishLaunchingWithOptions:launchOptions];
+    [[EaseMobUIClient sharedInstance] registerForRemoteNotificationsWithApplication:application];//你也可以自己注册APNS
     return YES;
 }
 
+//这里不是必须调用的方法
+- (void)applicationProtectedDataWillBecomeUnavailable:(UIApplication *)application{
+    [[EaseMobUIClient sharedInstance] applicationProtectedDataWillBecomeUnavailable:application];
+}
+
+- (void)applicationProtectedDataDidBecomeAvailable:(UIApplication *)application{
+    [[EaseMobUIClient sharedInstance] applicationProtectedDataDidBecomeAvailable:application];
+}
+
 - (void)applicationWillResignActive:(UIApplication *)application {
-    
+    [[EaseMobUIClient sharedInstance] applicationWillResignActive:application];
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
-    
-}
-
-- (void)applicationDidEnterBackground:(UIApplication *)application {
-    [[EaseMobUIClient sharedInstance] applicationDidEnterBackground:application];
+    [[EaseMobUIClient sharedInstance] applicationDidBecomeActive:application];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
     [[EaseMobUIClient sharedInstance] applicationWillEnterForeground:application];
 }
 
+- (void)applicationDidEnterBackground:(UIApplication *)application {
+    [[EaseMobUIClient sharedInstance] applicationDidEnterBackground:application];
+}
+
+- (void)applicationDidReceiveMemoryWarning:(UIApplication *)application{
+    [[EaseMobUIClient sharedInstance] applicationDidReceiveMemoryWarning:application];
+}
+
 - (void)applicationWillTerminate:(UIApplication *)application {
     [[EaseMobUIClient sharedInstance] applicationWillTerminate:application];
 }
 
-#pragma mark - EM_ChatUserDelegate
-- (EM_ChatUser *)userForEMChat{
-    EM_ChatUser *user = [[EM_ChatUser alloc]init];
-    user.uid = @"唯一标示";
-    user.avatar = @"头像地址";
-    user.displayName = @"要显示的名字";
-    user.intro = @"一些简介";
-    return user;
+//必须调用的方法，不调用也不会报错，只是某些功能不能用而已
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken{
+    [[EaseMobUIClient sharedInstance] application:application didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
 }
 
-#pragma mark - EM_ChatOppositeDelegate
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error{
+    [[EaseMobUIClient sharedInstance] application:application didFailToRegisterForRemoteNotificationsWithError:error];
+}
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo{
+    [[EaseMobUIClient sharedInstance] application:application didReceiveRemoteNotification:userInfo];
+}
+
+- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification{
+    [[EaseMobUIClient sharedInstance] application:application didReceiveLocalNotification:notification];
+}
+```
+实现相关必要的代理
+```
+[EaseMobUIClient sharedInstance].userDelegate = self; //EM_ChatUserDelegate
+[EaseMobUIClient sharedInstance].oppositeDelegate = self; //EM_ChatOppositeDelegate
+[EaseMobUIClient sharedInstance].notificationDelegate = self; //EM_ChatNotificationDelegate
+```
+```
+@protocol EM_ChatUserDelegate <NSObject>
+
+@optional
+/**
+ * 返回当前登录的用户信息
+ *
+ */
+- (EM_ChatUser *)userForEMChat;
+
+@end
+```
+```
+- (EM_ChatUser *)userForEMChat{
+    EM_ChatUser *user = [[EM_ChatUser alloc]init];
+    user.uid = @"登录用户的环信ID";
+    user.displayName = @"要显示的名字";
+    user.intro = @"一些简介";
+    user.avatar = [NSURL URLWithString:@"https://ss0.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=3321692254,2747196227&fm=21&gp=0.jpg"];
+    return user;
+}
+```
+```
+@protocol EM_ChatOppositeDelegate <NSObject>
+
+@optional
 /**
  *  根据chatter返回好友信息
  *
@@ -151,9 +186,7 @@ pod 'VoiceConvert',:git => "https://github.com/AwakenDragon/VoiceConvert.git"
  *
  *  @return
  */
-- (EM_ChatBuddy *)buddyInfoWithChatter:(NSString *)chatter{
-    
-}
+- (EM_ChatBuddy *)buddyInfoWithChatter:(NSString *)chatter;
 
 /**
  *  根据chatter返回群信息
@@ -162,9 +195,7 @@ pod 'VoiceConvert',:git => "https://github.com/AwakenDragon/VoiceConvert.git"
  *
  *  @return
  */
-- (EM_ChatGroup *)groupInfoWithChatter:(NSString *)chatter{
-    
-}
+- (EM_ChatGroup *)groupInfoWithChatter:(NSString *)chatter;
 
 /**
  *  根据chatter返回群中好友信息
@@ -174,9 +205,7 @@ pod 'VoiceConvert',:git => "https://github.com/AwakenDragon/VoiceConvert.git"
  *
  *  @return
  */
-- (EM_ChatBuddy *)buddyInfoWithChatter:(NSString *)chatter inGroup:(EM_ChatGroup *)group{
-    
-}
+- (EM_ChatBuddy *)buddyInfoWithChatter:(NSString *)chatter inGroup:(EM_ChatGroup *)group;
 
 /**
  *  根据chatter返回讨论组信息
@@ -185,9 +214,7 @@ pod 'VoiceConvert',:git => "https://github.com/AwakenDragon/VoiceConvert.git"
  *
  *  @return
  */
-- (EM_ChatRoom *)roomInfoWithChatter:(NSString *)chatter{
-    
-}
+- (EM_ChatRoom *)roomInfoWithChatter:(NSString *)chatter;
 
 /**
  *  根据chatter返回讨论组成员信息
@@ -197,16 +224,68 @@ pod 'VoiceConvert',:git => "https://github.com/AwakenDragon/VoiceConvert.git"
  *
  *  @return 
  */
-- (EM_ChatBuddy *)buddyInfoWithChatter:(NSString *)chatter inRoom:(EM_ChatRoom *)room{
-    
-}
-
+- (EM_ChatBuddy *)buddyInfoWithChatter:(NSString *)chatter inRoom:(EM_ChatRoom *)room;
 
 @end
 ```
+```
+- (EM_ChatBuddy *)buddyInfoWithChatter:(NSString *)chatter{
+    EM_ChatBuddy *buddy = [[EM_ChatBuddy alloc]init];
+    buddy.uid = @"好友的环信ID";
+    buddy.displayName = @"要显示的名字";
+    buddy.intro = @"一些简介";
+    buddy.avatar = [NSURL URLWithString:@"https://ss0.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=3321692254,2747196227&fm=21&gp=0.jpg"];
+
+    //这两个属性暂时用来存储，真正显示的还是displayName
+    buddy.nickName = @"昵称";
+    buddy.remarkName = @"备注名称";
+    return buddy;
+}
+
+- (EM_ChatGroup *)groupInfoWithChatter:(NSString *)chatter{
+    EM_ChatBuddy *group = [[EM_ChatBuddy alloc]init];
+    group.uid = @"群组的环信ID";
+    group.displayName = @"群组名字";
+    group.intro = @"一些简介";
+    group.avatar = [NSURL URLWithString:@"https://ss0.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=3321692254,2747196227&fm=21&gp=0.jpg"];//群组头像
+    return group;
+}
+
+- (EM_ChatRoom *)roomInfoWithChatter:(NSString *)chatter{
+    EM_ChatBuddy *room = [[EM_ChatBuddy alloc]init];
+    room.uid = @"讨论组的环信ID";
+    room.displayName = @"讨论组名字";
+    room.intro = @"一些简介";
+    room.avatar = [NSURL URLWithString:@"https://ss0.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=3321692254,2747196227&fm=21&gp=0.jpg"];//讨论组组头像
+    return room;
+}
+```
+```
+@protocol EM_ChatNotificationDelegate <NSObject>
+
+/**
+ *  本地消息通知显示内容
+ *  只有在消息有用户自己的自定义扩展的时候才会调用
+ *
+ *  @param message
+ *
+ *  @return 默认“发来一个新消息”，默认自动在前面加上消息发送者的显示名称
+ */
+- (NSString *)alertBodyWithMessage:(EM_ChatMessageModel *)message;
+
+@end
+```
+```
+- (NSString *)alertBodyWithMessage:(EM_ChatMessageModel *)message{
+    //只有消息里有自定义扩展消息的时候才会调用该方法
+    NSString *alertBody = @"根据消息内容显示的alertBody";
+    return alertBody;
+}
+```
+
 环信的部分API仍然需要自己去调用，比如初始化及登录方法。具体其他的环信API调用请参考环信的[官方文档](http://www.easemob.com/docs/ios/IOSSDKPrepare/)。
 <h4 id = "2.4.2">权限</h4>
-为了功能的正常时候，我们需要以下全下
+为了功能的正常时候，我们需要以下权限
 - **位置**    *在Info.plist中添加NSLocationAlwaysUsageDescription(始终允许使用)、NSLocationWhenInUseUsageDescription(使用期间允许使用)*
 - **照片**
 - **麦克风**
@@ -214,12 +293,13 @@ pod 'VoiceConvert',:git => "https://github.com/AwakenDragon/VoiceConvert.git"
 - **通知**    *注册APNS*
 - **后台应用程序刷新**  *在Info.plist中添加Required background modes 并添加App plays audio or streams audio/video using AirPlay、App downloads content in response to push notifications和App provides Voice over IP services三项；或者在Capabilities中打开Background Models，勾选Audio and Airplay、Voice over IP和Remote notifications*
 - **使用蜂窝移动数据**
-
+- **iOS9下的网络访问**    *iOS9引入了新特性```App Transport Security (ATS)```，新特性要求App内访问的网络必须使用```HTTPS```协议。所以可能会导致网络访问不通，在```Info.plist```中添加```NSAppTransportSecurity类型Dictionary```，
+并在```NSAppTransportSecurity```下添加```NSAllowsArbitraryLoads类型Boolean```，值设为```YES```，便可。*
 <h3 id = "2.5">会话列表</h3>
 ```
 EM_ChatListController
 ```
-会话列表
+你只需要简单集成，并实现相应的代理就可以了。
 ```
 #import "EM+ChatBaseController.h"
 @class EMConversation;
@@ -227,9 +307,15 @@ EM_ChatListController
 @class EM_ChatOpposite;
 @class EM_ConversationCell;
 
+@protocol EM_ChatListControllerDisplay;
+@protocol EM_ChatListControllerDataSource;
 @protocol EM_ChatListControllerDelegate;
 
 @interface EM_ChatListController : EM_ChatBaseController
+
+@property (nonatomic, weak) id<EM_ChatListControllerDisplay> display;
+
+@property (nonatomic, weak) id<EM_ChatListControllerDataSource> dataSource;
 
 @property (nonatomic, weak) id<EM_ChatListControllerDelegate> delegate;
 
@@ -239,7 +325,7 @@ EM_ChatListController
 
 
 /**
- *  重新加载会话
+ *  刷新数据
  */
 - (void)reloadData;
 
@@ -249,9 +335,37 @@ EM_ChatListController
 - (void)startRefresh;
 
 /**
- *  结束下拉刷新
+ *  结束下拉刷新，这里回自动调用reloadData方法
  */
 - (void)endRefresh;
+
+@end
+
+@protocol EM_ChatListControllerDisplay <NSObject>
+
+@optional
+
+/**
+ *  会话显示的简短信息
+ *  如果是编辑状态则默认显示编辑内容，此时不会调用该代理;
+ *  如果是语音通讯或者视频通讯则默认显示通话结果，此时不会调用该代理;
+ *  如果返回nil或者未实现，则默认显示最新一条消息的内容
+ *  @param opposite 聊天对象，好友，群，聊天室
+ *  @param message  聊天的最新一条消息，有可能为空
+ */
+- (NSMutableAttributedString *)introForConversationWithOpposite:(EM_ChatOpposite *)opposite message:(EM_ChatMessageModel *)message;
+
+@end
+
+@protocol EM_ChatListControllerDataSource <NSObject>
+
+@required
+
+- (NSInteger)numberOfRows;
+
+- (EMConversation *)dataForRowAtIndex:(NSInteger)index;
+
+@optional
 
 @end
 
@@ -277,21 +391,18 @@ EM_ChatListController
 - (CGFloat)heightForConversationRow;
 
 /**
- *  会话显示的简短信息
- *  如果是编辑状态则默认显示编辑内容，此时不会调用该代理;
- *  如果是语音通讯或者视频通讯则默认显示通话结果，此时不会调用该代理;
- *  如果返回nil或者未实现，则默认显示最新一条消息的内容
- *  @param opposite 聊天对象，好友，群，聊天室
- *  @param message  聊天的最新一条消息，有可能为空
- */
-- (NSMutableAttributedString *)introForConversationWithOpposite:(EM_ChatOpposite *)opposite message:(EM_ChatMessageModel *)message;
-
-/**
- *  选中某一会话
+ *  选中某一会话，可以跳转继承自EM_ChatController的聊天界面
  *
  *  @param conversation
  */
 - (void)didSelectedWithConversation:(EMConversation *)conversation;
+
+/**
+ *  删除某一会话
+ *  只有在设置了dataSource才会调用
+ *  @param conversation 
+ */
+- (void)didDeletedWithConversation:(EMConversation *)conversation;
 
 /**
  *  开始下拉刷新
@@ -305,51 +416,14 @@ EM_ChatListController
 
 @end
 ```
-继承
-```
-#import "EM+ChatListController.h"
-
-@interface CustomChatListController : EM_ChatListController
-
-@end
-```
-```
-#import "CustomChatListController.h"
-#import "CustomChatController.h"
-
-@interface CustomChatListController ()<EM_ChatListControllerDelegate>
-
-@end
-
-@implementation CustomChatListController
-
-- (instancetype)init{
-    self = [super init];
-    if (self) {
-        self.delegate = self;
-    }
-    return self;
-}
-
-- (void)viewDidLoad {
-    [super viewDidLoad];
-}
-
-#pragma mark - EM_ChatListControllerDelegate
-- (void)didSelectedWithConversation:(EMConversation *)conversation{
-    UChatController *chatController = [[UChatController alloc]initWithConversation:conversation];
-    [self.navigationController pushViewController:chatController animated:YES];
-}
-
-@end
-```
+如果你不设置dataSource，则默认加载环信的会话列表。搜索功能暂时不可用，请在```shouldShowSearchBar```返回```NO```。
 ![enter image description here](https://github.com/AwakenDragon/ImageRepository/blob/master/EaseMobDIYUI/chat_list.png?raw=true)
 
 <h3 id = "2.6">好友列表</h3>
 ```
 EM_BuddyListController
 ```
-好友列表
+好友列表，只需要简单继承就可以了。
 ```
 #import "EM+ChatBaseController.h"
 @class EM_ChatOpposite;
@@ -365,6 +439,8 @@ EM_BuddyListController
 - (void)reloadTagBar;
 
 - (void)reloadOppositeList;
+
+- (void)reloadOppositeGroupWithIndex:(NSInteger)index;
 
 - (void)startRefresh;
 
@@ -469,6 +545,15 @@ EM_BuddyListController
 - (NSString *)iconForTagAtIndex:(NSInteger)index;
 
 /**
+ *  角标
+ *
+ *  @param index
+ *
+ *  @return 
+ */
+- (NSInteger)badgeForTagAtIndex:(NSInteger)index;
+
+/**
  *  是否显示分组管理菜单
  *
  *  @return
@@ -518,18 +603,18 @@ EM_BuddyListController
 - (BOOL)shouldReloadSearchForSearchString:(NSString *)searchString;
 
 /**
- *  搜索结果被点击
- *
- *  @param index
- */
-- (void)didSelectedForSearchRowAtIndex:(NSInteger)index;
-
-/**
  *  tag被点击
  *
  *  @param index
  */
 - (void)didSelectedForTagAtIndex:(NSInteger)index;
+
+/**
+ *  分组管理被点击
+ *
+ *  @param groupIndex 
+ */
+- (void)didSelectedForGroupManageAtIndex:(NSInteger)groupIndex;
 
 /**
  *  分组被点击
@@ -539,12 +624,11 @@ EM_BuddyListController
 - (void)didSelectedForGroupAtIndex:(NSInteger)groupIndex;
 
 /**
- *  好友，群或者讨论组被点击
+ *  好友，群或者讨论组被点击，可以跳转继承自EM_ChatController的聊天界面
  *
- *  @param rowIndex
- *  @param groupIndex
+ *  @param opposite
  */
-- (void)didSelectedForRowAtIndex:(NSInteger)rowIndex groupIndex:(NSInteger)groupIndex;
+- (void)didSelectedWithOpposite:(EM_ChatOpposite *)opposite;
 
 /**
  *  已经开始开始下拉刷新
@@ -558,223 +642,7 @@ EM_BuddyListController
 
 @end
 ```
-继承
-```
-#import "EM+BuddyListController.h"
-
-@interface CustomBuddyListController : EM_BuddyListController
-
-@end
-```
-```
-#import "CustomBuddyListController.h"
-#import "CustomChatController.h"
-#import "EM+ChatOppositeTag.h"
-#import "EM+ChatBuddy.h"
-
-#import "EM+ChatResourcesUtils.h"
-
-#import <EaseMobSDKFull/EaseMob.h>
-
-#define GroupName           (@"groupName")
-#define GroupExpand         (@"groupExpand")
-#define GroupBuddys         (@"groupBuddys")
-
-@interface CustomBuddyListController ()<EM_ChatBuddyListControllerDataSource,EM_ChatBuddyListControllerDelegate,EMChatManagerDelegate>
-
-@property (nonatomic, assign) BOOL needReload;
-
-@end
-
-@implementation CustomBuddyListController{
-    NSArray *tags;
-    NSArray *icons;
-    NSMutableArray *buddyArray;
-    NSMutableArray *searchArray;
-}
-
-- (instancetype)init{
-    self = [super init];
-    if (self) {
-        tags = @[@"新朋友",@"群组",@"讨论组",@"黑名单"];
-        
-        buddyArray = [[NSMutableArray alloc]init];
-        for (int i = 0; i < 2; i++) {
-            [buddyArray addObject:[[NSMutableDictionary alloc]initWithDictionary:@{
-                                                                                   GroupName : [NSString stringWithFormat:@"我的好友%d",i+1],
-                                                                                   GroupExpand : @(NO),
-                                                                                   GroupBuddys : [[NSMutableArray alloc]init]
-                                                                                   }]];
-        }
-        searchArray = [[NSMutableArray alloc]init];
-        self.dataSource = self;
-        self.delegate = self;
-    }
-    return self;
-}
-
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    [[EaseMob sharedInstance].chatManager removeDelegate:self];
-    [[EaseMob sharedInstance].chatManager addDelegate:self delegateQueue:nil];
-    [[EaseMob sharedInstance].chatManager asyncFetchBuddyList];
-}
-
-- (void)viewDidAppear:(BOOL)animated{
-    [super viewDidAppear:animated];
-    if (self.needReload) {
-        [self reloadOppositeList];
-        self.needReload = NO;
-    }
-}
-
-#pragma mark - EM_ChatBuddyListControllerDataSource
-- (BOOL)shouldShowSearchBar{
-    return YES;
-}
-
-- (BOOL)shouldShowTagBar{
-    return YES;
-}
-
-//search
-- (NSInteger)numberOfRowsForSearch{
-    return searchArray.count;
-}
-
-- (EM_ChatOpposite *)dataForSearchRowAtIndex:(NSInteger)index{
-    return searchArray[index];
-}
-
-- (NSInteger)numberOfTags{
-    return tags.count;
-}
-
-- (UIFont *)fontForTagAtIndex:(NSInteger)index{
-    return [EM_ChatResourcesUtils iconFontWithSize:30];
-}
-
-- (NSString *)titleForTagAtIndex:(NSInteger)index{
-    return tags[index];
-}
-
-//opposite
-- (NSInteger)numberOfGroups{
-    return buddyArray.count;
-}
-
-- (BOOL)shouldExpandForGroupAtIndex:(NSInteger)index{
-    NSDictionary *info = buddyArray[index];
-    return [info[GroupExpand] boolValue];
-}
-
-- (NSString *)titleForGroupAtIndex:(NSInteger)index{
-    NSDictionary *info = buddyArray[index];
-    return info[GroupName];
-}
-
-//opposite
-- (NSInteger)numberOfRowsAtGroupIndex:(NSInteger)groupIndex{
-    NSDictionary *info = buddyArray[groupIndex];
-    return [info[GroupBuddys] count];
-}
-
-- (EM_ChatOpposite *)dataForRow:(NSInteger)rowIndex groupIndex:(NSInteger)groupIndex{
-    NSMutableDictionary *info = buddyArray[groupIndex];
-    NSArray *buddys = info[GroupBuddys];
-    return buddys[rowIndex];
-}
-
-#pragma mark - EM_ChatBuddyListControllerDelegate
-//search
-- (BOOL)shouldReloadSearchForSearchString:(NSString *)searchString{
-    if (searchString) {
-        [searchArray removeAllObjects];
-        
-        for (int i = 0; i < buddyArray.count; i++) {
-            NSDictionary *info = buddyArray[i];
-            NSArray *buddys = info[GroupBuddys];
-            for (EM_ChatBuddy *buddy in buddys) {
-                if ([buddy.displayName containsString:searchString]) {
-                    [searchArray addObject:buddy];
-                    continue;
-                }
-                if ([buddy.remarkName containsString:searchString]){
-                    [searchArray addObject:buddy];
-                    continue;
-                }
-                if ([buddy.uid containsString:searchString]){
-                    [searchArray addObject:buddy];
-                    continue;
-                }
-            }
-        }
-    }
-    return YES;
-}
-
-- (void)didSelectedForSearchRowAtIndex:(NSInteger)index{
-    EM_ChatBuddy *buddy = searchArray[index];
-    UChatController *chatController = [[UChatController alloc]initWithOpposite:buddy];
-    [self.navigationController pushViewController:chatController animated:YES];
-}
-
-//group
-- (void)didSelectedForGroupManageAtIndex:(NSInteger)groupIndex{
-    NSLog(@"分组管理%ld",groupIndex);
-}
-
-- (void)didSelectedForGroupAtIndex:(NSInteger)groupIndex{
-    NSDictionary *info = buddyArray[groupIndex];
-    BOOL expand = [info[GroupExpand] boolValue];
-    [info setValue:@(!expand) forKey:GroupExpand];
-    [self reloadOppositeList];
-}
-
-//opposite
-- (void)didSelectedForRowAtIndex:(NSInteger)rowIndex groupIndex:(NSInteger)groupIndex{
-    NSMutableDictionary *info = buddyArray[groupIndex];
-    NSArray *buddys = info[GroupBuddys];
-    EM_ChatBuddy *buddy = buddys[rowIndex];
-    UChatController *chatController = [[UChatController alloc]initWithOpposite:buddy];
-    [self.navigationController pushViewController:chatController animated:YES];
-}
-
-#pragma mark - EMChatManagerBuddyDelegate
-- (void)didFetchedBuddyList:(NSArray *)buddyList error:(EMError *)error{
-    for (int i = 0;i < buddyList.count;i++) {
-        EMBuddy *emBuddy = buddyList[i];
-        EM_ChatBuddy *buddy = [[EM_ChatBuddy alloc]init];
-        buddy.uid = emBuddy.username;
-        buddy.nickName = emBuddy.username;
-        buddy.remarkName = emBuddy.username;
-        buddy.displayName = buddy.remarkName;
-
-        NSDictionary *info = buddyArray[i % 2];
-        NSMutableArray *buddys = info[GroupBuddys];
-        
-        if (![buddys containsObject:buddy]) {
-            [buddys addObject:buddy];
-        }
-    }
-    
-    if (self.isShow) {
-        [self reloadOppositeList];
-    }else{
-        self.needReload = YES;
-    }
-}
-
-- (void)didUpdateBuddyList:(NSArray *)buddyList changedBuddies:(NSArray *)changedBuddies isAdd:(BOOL)isAdd{
-    
-}
-
-- (void)didRemovedByBuddy:(NSString *)username{
-    
-}
-
-@end
-```
+如果不设置dataSource，则默认加载环信的好友关系。
 ![enter image description here](https://github.com/AwakenDragon/ImageRepository/blob/master/EaseMobDIYUI/buddy_list.png?raw=true)
 
 <h3 id = "2.7">聊天界面</h3>
@@ -998,6 +866,8 @@ EM_ChatController
 #import "EM+ChatBaseController.h"
 #import "EM+ChatUIConfig.h"
 #import "EM+ChatMessageModel.h"
+@class EM_ChatOpposite;
+@class EM_ChatUser;
 
 @protocol EM_ChatControllerDelegate;
 
@@ -1008,12 +878,21 @@ EM_ChatController
  */
 @property (nonatomic, strong, readonly) EMConversation *conversation;
 
-
+@property (nonatomic, strong, readonly) EM_ChatOpposite *opposite;
+@property (nonatomic, strong, readonly) EM_ChatUser *user;
 @property (nonatomic,weak) id<EM_ChatControllerDelegate> delegate;
 
-- (instancetype)initWithChatter:(NSString *)chatter conversationType:(EMConversationType)conversationType config:(EM_ChatUIConfig *)config;
+- (instancetype)initWithOpposite:(EM_ChatOpposite *)opposite;
+
+- (instancetype)initWithChatter:(NSString *)chatter conversationType:(EMConversationType)conversationType;
+
+- (instancetype)initWithConversation:(EMConversation *)conversation;
 
 - (void)sendMessage:(EM_ChatMessageModel *)message;
+
+- (void)dismissKeyboard;
+
+- (void)dismissMoreTool;
 
 @end
 
@@ -1035,11 +914,9 @@ EM_ChatController
  *
  *  @param body 消息内容
  *
- *  @param type 消息类型
- *
- *  @return 扩展
+ *  @return
  */
-- (EM_ChatMessageExtend *)extendForMessage:(id)body messageType:(MessageBodyType)type;
+- (void)extendForMessage:(EM_ChatMessageModel *)message;
 
 /**
  *  是否允许发送消息
@@ -1123,11 +1000,8 @@ EM_ChatController
     return [EM_ChatUIConfig defaultConfig];
 }
 
-- (EM_ChatMessageExtend *)extendForMessage:(id)body messageType:(MessageBodyType)type{
-    CustomExtend *extend = [[CustomExtend alloc]init];
-    extend.showBody = YES;
-    extend.showExtend = YES;
-    return extend;
+- (void)extendForMessage:(EM_ChatMessageModel *)message{
+    message.messageExtend.extendAttributes = @{@"a":@"不显示的属性"};
 }
 
 - (void)didActionSelectedWithName:(NSString *)name{
@@ -1154,197 +1028,98 @@ EM_ChatController
 <h3 id = "2.8">自定义扩展</h3>
 **自定义扩展**是通过环信```EMMessage```的扩展属性```ext```来实现的，我只是对自定义扩展进行了规范，可以让大家方便扩展的同时实现了自己的一些功能。为了统一iOS和Android，在声明属性的时候请尽量只声明NSString、BOOL和数字类型，因为Android只支持这些类型。
 ```
-EM_ChatMessageExtend
+EM_ChatMessageExtendBody
 ```
-这里有我自己的一些扩展属性，大家只需要继承就可以了。
+所有的自定义扩展必须继承```EM_ChatMessageExtendBody```，且必须重写```+ (NSString *)identifierForExtend```、```+ (Class)viewForClass```、```+ (BOOL)showBody```和```+ (BOOL)showExtend```方法。同时在初始化```EaseMobUIClient```的时候注册自定义消息，```[[EaseMobUIClient sharedInstance] registerExtendClass:[UserCustomExtend class]];```。
+
+发送自定义扩展消息，在聊天界面中调用```- (void)sendMessage:(EM_ChatMessageModel *)message```方法。
 ```
-#import <UIKit/UIKit.h>
-#import <JSONModel/JSONModel.h>
-@class EM_ChatMessageModel;
+UserCustomExtend *custom = [[UserCustomExtend alloc]init];
+EM_ChatMessageModel *customMessage = [EM_ChatMessageModel fromText:@"" conversation:self.conversation];
+customMessage.messageExtend.extendBody = custom;
+[self sendMessage:customMessage];
+```
 
+```
+#import "JSONModel.h"
 
-//key
-#define kExtendAttributeKeyClassName           (kExtendAttributeNameClassName)
-#define kExtendAttributeKeyIsCallMessage       (kExtendAttributeNameIsCallMessage)
-#define kExtendAttributeKeyFileType            (kExtendAttributeNameFileType)
+#define kIdentifierForExtend                    (@"kIdentifierForExtend")
 
-#define kExtendAttributeKeyMessage             (kExtendAttributeNameMessage)
-#define kExtendAttributeKeyShowBody            (kExtendAttributeNameShowBody)
-#define kExtendAttributeKeyShowExtend          (kExtendAttributeNameShowExtend)
-#define kExtendAttributeKeyShowTime            (kExtendAttributeNameShowTime)
-#define kExtendAttributeKeyDetails             (kExtendAttributeNameDetails)
-#define kExtendAttributeKeyChecking            (kExtendAttributeNameChecking)
-#define kExtendAttributeKeyCollected           (kExtendAttributeNameCollected)
-#define kExtendAttributeKeyAttributes          (kExtendAttributeNameAttributes)
-
-#define kExtendAttributeKeyViewClassName       (kExtendAttributeNameViewClassName)
-
-
-//name
-#define kExtendAttributeNameClassName           (@"className")
-#define kExtendAttributeNameIsCallMessage       (@"isCallMessage")
-#define kExtendAttributeNameFileType            (@"fileType")
-
-#define kExtendAttributeNameMessage             (@"message")
-#define kExtendAttributeNameShowBody            (@"showBody")
-#define kExtendAttributeNameShowExtend          (@"showExtend")
-#define kExtendAttributeNameShowTime            (@"showTime")
-#define kExtendAttributeNameDetails             (@"details")
-#define kExtendAttributeNameChecking            (@"checking")
-#define kExtendAttributeNameCollected           (@"collected")
-#define kExtendAttributeNameAttributes          (@"attributes")
-
-#define kExtendAttributeNameViewClassName       (@"viewClassName")
-
-
-@interface EM_ChatMessageExtend : JSONModel
-
-/****************************************************/
+@interface EM_ChatMessageExtendBody : JSONModel
 
 /**
- *  不要修改
- *  扩展所在的消息
- */
-@property (nonatomic, strong) EM_ChatMessageModel<Ignore> *message;
-
-/**
- *  不要修改
- *  当前类的类名
- */
-@property (nonatomic, copy) NSString *className;
-
-/**
- *  不要修改
- *  标记是否是即时语音、即时视频消息,该标记只针对文字消息有效,
- */
-@property (nonatomic, assign) BOOL isCallMessage;
-
-/**
- *  不要修改
- *  文件类型,只针对文件消息有效,
- */
-@property (nonatomic, copy) NSString<Optional> *fileType;
-
-
-
-
-/****************************************************/
-
-/**
- *  是否显示消息内容,默认YES
- */
-@property (nonatomic, assign) BOOL showBody;
-
-/**
- *  是否显示扩展内容,默认NO
- */
-@property (nonatomic, assign) BOOL showExtend;
-
-/**
- *  是否显示时间,默认NO
- */
-@property (nonatomic, assign) BOOL showTime;
-
-/**
- *  标记消息的详情是否被查看,比如图片的大图是否被查看,语音消息是否被听过,视频是否被看过
- */
-@property (nonatomic, assign) BOOL details;
-
-/**
- *  标记消息是否正在查看
- */
-@property (nonatomic, assign) BOOL checking;
-
-/**
- *  标记消息是否被收藏
- */
-@property (nonatomic, assign) BOOL collected;
-
-/**
- *  自定义扩展属性,不用来显示
- */
-@property (nonatomic, strong) NSDictionary<Optional> *attributes;
-
-
-
-
-/*****************************************************/
-
-/**
+ *  扩展标示，iOS和Android两个平台必须一致
  *
- *  显示View的类名,showExtend为YES的时候必须设置
- */
-@property (nonatomic, copy) NSString *viewClassName;
-
-/**
- *  overwrite
- *  key 和 属性名的对应
- *  请使用super
  *  @return
  */
-+ (NSMutableDictionary *)keyMapping;
++ (NSString *)identifierForExtend;
 
 /**
- *  overwrite
- *  显示View的大小,showExtend为YES时子类必须重写,否则默认返回CGSizeZero
+ *  扩展对应的显示View
  *
- *  @param maxWidth 扩展最大的宽度,返回大小的宽度必须小于等于maxWidth
- *
- *  @return size
+ *  @return
  */
-- (CGSize)extendSizeFromMaxWidth:(CGFloat)maxWidth;
++ (Class)viewForClass;
+
+/**
+ *  是否显示消息体
+ *
+ *  @return
+ */
++ (BOOL)showBody;
+
+/**
+ *  是否显示扩展体
+ *
+ *  @return 
+ */
++ (BOOL)showExtend;
 
 @end
 ```
-其中大部分属性都不需要自己去修改，自己只需要关注```showBody```、```showExtend```这两个字段，以及```- (Class)classForExtendView```、```- (NSMutableDictionary *)getContentValues```、```- (void)getFrom:(NSDictionary *)extend```和```- (CGSize)extendSizeFromMaxWidth:(CGFloat)maxWidth```方法就可以了。
-
-因为扩展内容是通过```NSDictionary```的方式进行存储的，所以子类需要重写```- (NSMutableDictionary *)getContentValues```和```- (void)getFrom:(NSDictionary *)extend```方法。
-
+扩展绑定的```View```必须继承自```EM_ChatMessageExtendView```，同时必须重写```+ (CGSize)sizeForContentWithMessage:(EM_ChatMessageModel *)message maxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config```方法。
 ```
-#import "EM+ChatMessageExtend.h"
+#import "EM+ChatMessageExtendView.h"
 
-//key
-#define kExtendAttributeKeyExtend           (kExtendAttributeNameExtend)
-
-
-//name
-#define kExtendAttributeNameExtend          (@"extendProperty")
-
-@interface UserCustomExtend : EM_ChatMessageExtend
-
-@property (nonatomic, copy) NSString *extendProperty;
+@interface UserCustomExtendView : EM_ChatMessageExtendView
 
 @end
 ```
 ```
-#import "UserCustomExtend.h"
 #import "UserCustomExtendView.h"
+#import "EM+ChatMessageModel.h"
+#import "UserCustomExtend.h"
 
-@implementation UserCustomExtend
+@implementation UserCustomExtendView{
+    UILabel *label;
+}
+
++ (CGSize)sizeForContentWithMessage:(EM_ChatMessageModel *)message maxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config{
+    return CGSizeMake(80, 30);
+}
 
 - (instancetype)init{
     self = [super init];
-    if(self){
-        self.extendProperty = @"这是扩展属性";
-        self.viewClassName = NSStringFromClass([UserCustomExtendView class]);
+    if (self) {
+        label = [[UILabel alloc]init];
+        label.textColor = [UIColor blackColor];
+        [self addSubview:label];
     }
     return self;
 }
 
-+ (NSMutableDictionary *)keyMapping{
-    NSMutableDictionary *mapping = [super keyMapping];
-    [mapping setObject:kExtendAttributeNameExtend forKey:kExtendAttributeKeyExtend];
-    return mapping;
+- (void)layoutSubviews{
+    [super layoutSubviews];
+    label.frame = self.bounds;
 }
 
-- (CGSize)extendSizeFromMaxWidth:(CGFloat)maxWidth{
-    return [self.extendProperty sizeWithAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:17]}];
+- (void)setMessage:(EM_ChatMessageModel *)message{
+    [super setMessage:message];
+    UserCustomExtend *extend = (UserCustomExtend *)message.messageExtend.extendBody;
+    label.text = extend.extendProperty;
 }
-
-@end
 ```
-当你需要消息```View```上显示扩展内容的时候，请将```showExtend```标记为```YES```。当然你也可以同时将```showBody```标记为```NO```，这个时候就只会在```View```上显示扩展内容而不显示消息内容了。然后再在消息气泡上加一个特殊的背景！
-当```showExtend```标记为```YES```，你需要提供自定义的```View```，自定义View必须继承```EM_ChatMessageExtendView```，不需要提供额外的```init```方法。```EM_ChatMessageExtendView```本身没有太多可以实现的（后期会加入更多的实现），和```EM_ChatMessageBodyView```（用来显示消息内容的View）一样都是继承自```EM_ChatMessageContent```。
+```EM_ChatMessageExtendView```本身没有太多可以实现的（后期会加入更多的实现），和```EM_ChatMessageBodyView```（用来显示消息内容的View）一样都是继承自```EM_ChatMessageContent```。你可以重写```EM_ChatMessageContent```的一些方法来实现更多的功能。
 ```
 EM_ChatMessageContent
 ```
@@ -1415,6 +1190,8 @@ extern NSString * const MENU_ACTION_FORWARD;//转发
 @property (nonatomic, strong) EM_ChatMessageUIConfig *config;
 
 
++ (CGSize )sizeForContentWithMessage:(EM_ChatMessageModel *)message maxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config;
+
 //overwrite
 
 /**
@@ -1468,19 +1245,15 @@ extern NSString * const MENU_ACTION_FORWARD;//转发
 
 @end
 ```
-默认有点击、长按手势，而且你不需要实现代理，代理已经在```EM_ChatController```中实现。你需要关注```- (NSMutableArray *)menuItems```和```- (NSMutableDictionary *)userInfo```方法，长按手势默认是用来调出menu的，所以你需要提供menuItems。
-```
-#import "EM+ChatMessageExtendView.h"
-
-@interface CustomExtendView : EM_ChatMessageExtendView
-
-@end
-```
 ```
 #import "CustomExtendView.h"
 
 @implementation CustomExtendView{
     UILabel *label;
+}
+
++ (CGSize)sizeForContentWithMessage:(EM_ChatMessageModel *)message maxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config{
+    return CGSizeMake(80, 30);
 }
 
 - (void)layoutSubviews{
@@ -1519,8 +1292,6 @@ extern NSString * const MENU_ACTION_FORWARD;//转发
 
 @end
 ```
-
-
 <h3 id = "2.9">UI</h3>
 
 ![enter image description here](https://github.com/AwakenDragon/ImageRepository/blob/master/EaseMobDIYUI/action_view.png?raw=true)

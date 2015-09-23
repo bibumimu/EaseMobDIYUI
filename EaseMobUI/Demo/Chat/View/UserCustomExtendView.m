@@ -14,6 +14,10 @@
     UILabel *label;
 }
 
++ (CGSize)sizeForContentWithMessage:(EM_ChatMessageModel *)message maxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config{
+    return CGSizeMake(80, 30);
+}
+
 - (instancetype)init{
     self = [super init];
     if (self) {
@@ -31,7 +35,7 @@
 
 - (void)setMessage:(EM_ChatMessageModel *)message{
     [super setMessage:message];
-    UserCustomExtend *extend = (UserCustomExtend *)message.extend;
+    UserCustomExtend *extend = (UserCustomExtend *)message.messageExtend.extendBody;
     label.text = extend.extendProperty;
 }
 

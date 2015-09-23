@@ -19,16 +19,21 @@
 #import "EM+ChatBuddy.h"
 #import "EM+ChatGroup.h"
 #import "EM+ChatRoom.h"
+#import "EM+ChatMessageExtendCall.h"
+#import "EM+ChatMessageExtendFile.h"
+#import "EM_ChatConversation.h"
 
 #import "EM+ChatMessageManager.h"
 #import "EaseMobUIClient.h"
 #import "EM+Common.h"
 #import "EM+ChatResourcesUtils.h"
 #import "EM+ChatDBUtils.h"
-#import "EM_ChatConversation.h"
 
 #import "UIColor+Hex.h"
 #import "DDLog.h"
+
+//
+#import "EMCDDeviceManager+ProximitySensor.h"
 
 #import <MJRefresh/MJRefresh.h>
 #import <MBProgressHUD/MBProgressHUD.h>
@@ -69,11 +74,12 @@ EM_ExplorerControllerDelegate,
 EM_ChatMessageManagerDelegate,
 EMChatManagerDelegate,
 IEMChatProgressDelegate,
-EMDeviceManagerDelegate>
+EMDeviceManagerDelegate,
+EMCDDeviceManagerDelegate>
 
 @property (nonatomic, strong) NSMutableArray *dataSource;
-@property (nonatomic, strong) NSMutableArray *imageDataArray;
-@property (nonatomic, strong) NSMutableArray *voiceDataArray;
+@property (nonatomic, strong) NSArray *imageArray;
+@property (nonatomic, strong) NSArray *voiceArray;
 @property (nonatomic, strong) EM_ChatUIConfig *config;
 
 @property (nonatomic, strong) UIImagePickerController *imagePicker;
@@ -81,9 +87,6 @@ EMDeviceManagerDelegate>
 
 @property (nonatomic,strong) EM_ChatTableView *chatTableView;
 @property (nonatomic,strong) EM_ChatToolBar *chatToolBarView;
-
-@property (nonatomic, strong) EM_ChatOpposite *opposite;
-@property (nonatomic, strong) EM_ChatUser *user;
 
 @end
 
@@ -130,7 +133,7 @@ EMDeviceManagerDelegate>
 - (void)initializeWithConversation:(EMConversation *)conversation{
     self.hidesBottomBarWhenPushed = YES;
     self.navigationController.interactivePopGestureRecognizer.enabled = YES;
-
+    
     _conversation = conversation;
     [_conversation markAllMessagesAsRead:YES];
     
@@ -171,12 +174,13 @@ EMDeviceManagerDelegate>
     }
     
     _dataSource = [[NSMutableArray alloc]init];
-    _imageDataArray = [[NSMutableArray alloc]init];
-    _voiceDataArray = [[NSMutableArray alloc]init];
+    _imageArray = @[[[NSMutableArray alloc]init],[[NSMutableArray alloc]init]];
+    _voiceArray = @[[[NSMutableArray alloc]init],[[NSMutableArray alloc]init]];
 }
 
 - (void)viewDidLoad{
     [super viewDidLoad];
+    
     if (self.delegate && [self.delegate respondsToSelector:@selector(configForChat)]) {
         self.config = [self.delegate configForChat];
     }
@@ -197,6 +201,7 @@ EMDeviceManagerDelegate>
     _chatTableView.dataSource = self;
     _chatTableView.delegate = self;
     _chatTableView.contentInset = UIEdgeInsetsMake(self.offestY > 0 ? self.offestY : 0, 0, 0, 0);
+    _chatTableView.backgroundColor = [UIColor colorWithHexRGB:0xf0f0f0];
     [self.view addSubview:_chatTableView];
     
     MJRefreshGifHeader *header = [MJRefreshGifHeader headerWithRefreshingTarget:self refreshingAction:@selector(loadMoreMessage:animated:)];
@@ -223,6 +228,8 @@ EMDeviceManagerDelegate>
     
     [[EaseMob sharedInstance].chatManager removeDelegate:self];
     [[EaseMob sharedInstance].chatManager addDelegate:self delegateQueue:nil];
+    [EMCDDeviceManager sharedInstance].delegate = self;
+    [EM_ChatMessageManager defaultManager].delegate = self;
     
     _messageQueue = dispatch_queue_create("EaseMob", NULL);
     
@@ -231,7 +238,18 @@ EMDeviceManagerDelegate>
     [self queryEditor];
 }
 
+- (void)viewDidAppear:(BOOL)animated{
+    [super viewDidAppear:animated];
+    _chatToolBarView.shouldReceiveKeyboardNotification = YES;
+}
+
+- (void)viewDidDisappear:(BOOL)animated{
+    [super viewDidDisappear:animated];
+    _chatToolBarView.shouldReceiveKeyboardNotification = NO;
+}
+
 - (void)didReceiveMemoryWarning{
+    [super didReceiveMemoryWarning];
     [self saveEditor];
 }
 
@@ -242,9 +260,9 @@ EMDeviceManagerDelegate>
     //self.conversation.ext
     //这个属性说不定可以用来存储编辑状态
     //但是conversation没有保存ext的方法
-//    if ((!editorText || editorText.length == 0) && ![self.conversation latestMessage]) {
-//        //移除会话
-//    }
+    //    if ((!editorText || editorText.length == 0) && ![self.conversation latestMessage]) {
+    //        //移除会话
+    //    }
 }
 
 - (UIImagePickerController *)imagePicker{
@@ -293,18 +311,26 @@ EMDeviceManagerDelegate>
 #pragma mark - sendMessage
 - (void)sendMessage:(EM_ChatMessageModel *)message{
     if (_dataSource.count > 0) {
-        EM_ChatMessageModel *perMessage = _dataSource[_dataSource.count - 1];
-        message.extend.showTime = (message.message.timestamp - perMessage.message.timestamp) / 1000 >= 300;
+        EM_ChatMessageModel *perMessage = [_dataSource lastObject];
+        message.messageExtend.showTime = (message.message.timestamp - perMessage.message.timestamp) / 1000 >= 300;
     }else{
-        message.extend.showTime = YES;
+        message.messageExtend.showTime = YES;
     }
+    if (!message.messageExtend.extendAttributes && self.delegate && [self.delegate respondsToSelector:@selector(extendForMessage:)]) {
+        [self.delegate extendForMessage:message];
+    }
+    message.message.ext = [message.messageExtend toDictionary];
     [[EaseMob sharedInstance].chatManager asyncSendMessage:message.message progress:self];
 }
 
-- (EM_ChatMessageModel*)formatMessage:(EMMessage *)message{
+- (EM_ChatMessageModel*)formatMessage:(EMMessage *)message insert:(BOOL)insert{
     EM_ChatMessageModel *messageModel = [EM_ChatMessageModel fromEMMessage:message];
     NSString *loginChatter = [[EaseMob sharedInstance].chatManager loginInfo][kSDKUsername];
-    messageModel.sender = [messageModel.message.from isEqualToString:loginChatter];
+    messageModel.sender = [message.from isEqualToString:loginChatter];
+    messageModel.messageSign = [[EM_ChatDBUtils shared] queryMessageWithId:message.messageId chatter:message.conversationChatter];
+    if (!messageModel.messageSign) {
+        messageModel.messageSign = [[EM_ChatDBUtils shared] insertNewMessage];
+    }
     if (messageModel.sender) {
         messageModel.displayName = _user.displayName;
         messageModel.avatar = _user.avatar;
@@ -320,41 +346,54 @@ EMDeviceManagerDelegate>
         }else{
             buddy = (EM_ChatBuddy *)_opposite;
         }
-        messageModel.displayName = _opposite.displayName;
-        messageModel.avatar = _opposite.avatar;
+        messageModel.displayName = buddy.displayName;
+        messageModel.avatar = buddy.avatar;
     }
+    
+    NSInteger index = 0;
+    if (!messageModel.sender) {
+        index = 1;
+    }
+    if (messageModel.messageBody.messageBodyType == eMessageBodyType_Voice) {
+        NSMutableArray *senderVoiceArray =  self.voiceArray[index];
+        if (![senderVoiceArray containsObject:messageModel]) {
+            if (insert) {
+                [senderVoiceArray insertObject:messageModel atIndex:0];
+            }else{
+                [senderVoiceArray addObject:messageModel];
+            }
+        }
+    }else if (messageModel.messageBody.messageBodyType == eMessageBodyType_Image){
+        NSMutableArray *senderImageArray =  self.imageArray[index];
+        if (![senderImageArray containsObject:messageModel]) {
+            if (insert) {
+                [senderImageArray insertObject:messageModel atIndex:0];
+            }else{
+                [senderImageArray addObject:messageModel];
+            }
+        }
+    }
+    
     return messageModel;
 }
 
 - (void)addMessage:(EMMessage *)message{
-    EM_ChatMessageModel *messageModel = [self formatMessage:message];
+    EM_ChatMessageModel *messageModel = [self formatMessage:message insert:NO];
     if (_dataSource.count > 0) {
         EM_ChatMessageModel *preMessage = _dataSource[_dataSource.count - 1];
-        messageModel.extend.showTime = preMessage.message.timestamp - messageModel.message.timestamp >= 1000 * 60 * 5;
+        messageModel.messageExtend.showTime = preMessage.message.timestamp - messageModel.message.timestamp >= 1000 * 60 * 5;
     }
-    [self continuousMessage:messageModel];
     
     [_dataSource addObject:messageModel];
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:(_dataSource.count - 1) inSection:0];
-    MAIN(^{
-        [_chatTableView beginUpdates];
-        [_chatTableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
-        [_chatTableView endUpdates];
-        [_chatTableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
-    });
-}
-
-//连续播放语音、图片
-- (void)continuousMessage:(EM_ChatMessageModel *)message{
-    if (message.messageBody.messageBodyType == eMessageBodyType_Image) {
-        [_imageDataArray addObject:message];
-    }else if (message.messageBody.messageBodyType == eMessageBodyType_Voice){
-        [_voiceDataArray addObject:message];
-    }
+    [_chatTableView beginUpdates];
+    [_chatTableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
+    [_chatTableView endUpdates];
+    [_chatTableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionBottom animated:YES];
 }
 
 - (void)reloadMessage:(EMMessage *)message{
-    EM_ChatMessageModel *messageModel = [self formatMessage:message];
+    EM_ChatMessageModel *messageModel = [self formatMessage:message insert:NO];
     NSInteger index = [_dataSource indexOfObject:messageModel];
     if (index < 0 || index >= _dataSource.count){
         return;
@@ -371,7 +410,7 @@ EMDeviceManagerDelegate>
 }
 
 - (void)reloadMessage:(EMMessage *)message progress:(CGFloat)progress{
-    EM_ChatMessageModel *messageModel = [self formatMessage:message];
+    EM_ChatMessageModel *messageModel = [self formatMessage:message insert:NO];
     NSInteger index = [_dataSource indexOfObject:messageModel];
     if (index < 0 || index >= _dataSource.count){
         return;
@@ -399,9 +438,7 @@ EMDeviceManagerDelegate>
         NSArray *messages = [_conversation loadNumbersOfMessages:20 before:timestamp];
         if (messages.count > 0) {
             for (NSInteger i = messages.count - 1; i >= 0; i--) {
-                EM_ChatMessageModel *messageModel = [self formatMessage:messages[i]];
-                [self continuousMessage:messageModel];
-                
+                EM_ChatMessageModel *messageModel = [self formatMessage:messages[i] insert:YES];
                 [_dataSource insertObject:messageModel atIndex:0];
             }
             
@@ -424,6 +461,14 @@ EMDeviceManagerDelegate>
     }
 }
 
+- (void)dismissKeyboard{
+    [_chatToolBarView dismissKeyboard];
+}
+
+- (void)dismissMoreTool{
+    [_chatToolBarView dismissMoreTool];
+}
+
 #pragma mark - EM_MessageToolBarDelegate
 - (void)messageToolBar:(EM_ChatToolBar *)toolBar didShowToolOrKeyboard:(BOOL)isShow{
     if (isShow && _dataSource.count > 0) {
@@ -440,11 +485,7 @@ EMDeviceManagerDelegate>
     return shouldSend;
 }
 - (void)messageToolBar:(EM_ChatToolBar *)toolBar didSendMessagee:(NSString *)message{
-    EM_ChatMessageExtend *extend = nil;
-    if(self.delegate && [self.delegate respondsToSelector:@selector(extendForMessage:messageType:)]){
-        extend = [self.delegate extendForMessage:message messageType:eMessageBodyType_Text];
-    }
-    [self sendMessage:[EM_ChatMessageModel fromText:message conversation:self.conversation extend:extend]];
+    [self sendMessage:[EM_ChatMessageModel fromText:message conversation:self.conversation]];
 }
 
 //MoroTool
@@ -473,9 +514,9 @@ EMDeviceManagerDelegate>
             [self showHint:[EM_ChatResourcesUtils stringWithName:@"error.device.not_support_camera"]];
         }
     }else if ([action isEqualToString:kActionNameVoice]){
-        [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallActionOut object:nil userInfo:@{kEMCallChatter:self.conversation.chatter,kEMCallType:kEMCallTypeVoice}];
+        [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallActionOut object:nil userInfo:@{kEMCallChatter:self.conversation.chatter,kEMCallType:@(eCallSessionTypeAudio)}];
     }else if ([action isEqualToString:kActionNameVideo]){
-        [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallActionOut object:nil userInfo:@{kEMCallChatter:self.conversation.chatter,kEMCallType:kEMCallTypeVideo}];
+        [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallActionOut object:nil userInfo:@{kEMCallChatter:self.conversation.chatter,kEMCallType:@(eCallSessionTypeVideo)}];
     }else if ([action isEqualToString:kActionNameLocation]){
         
         EM_LocationController *locationController = [[EM_LocationController alloc]init];
@@ -506,7 +547,7 @@ EMDeviceManagerDelegate>
 }
 
 - (void)messageToolBar:(EM_ChatToolBar *)toolBar didStartRecord:(UIView *)view{
-
+    
 }
 
 - (void)messageToolBar:(EM_ChatToolBar *)toolBar didCancelRecord:(UIView *)view{
@@ -514,11 +555,7 @@ EMDeviceManagerDelegate>
 }
 
 - (void)messageToolBar:(EM_ChatToolBar *)toolBar didEndRecord:(NSString *)name record:(NSString *)recordPath duration:(NSInteger)duration{
-    EM_ChatMessageExtend *extend = nil;
-    if(self.delegate && [self.delegate respondsToSelector:@selector(extendForMessage:messageType:)]){
-        extend = [self.delegate extendForMessage:recordPath messageType:eMessageBodyType_Voice];
-    }
-    [self sendMessage:[EM_ChatMessageModel fromVoice:recordPath name:name duration:duration conversation:self.conversation extend:extend]];
+    [self sendMessage:[EM_ChatMessageModel fromVoice:recordPath name:name duration:duration conversation:self.conversation]];
 }
 
 - (void)messageToolBar:(EM_ChatToolBar *)toolBar didRecordError:(NSError *)error{
@@ -560,29 +597,43 @@ EMDeviceManagerDelegate>
             sheet.tag = ALERT_ACTION_TAP_PHONE;
             [sheet showInView:self.view];
         }else if ([handleAction isEqualToString:HANDLE_ACTION_TEXT]){
-            if (messageModel.extend.callType) {
-                [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallActionOut object:nil userInfo:@{kEMCallChatter:self.conversation.chatter,kEMCallType:messageModel.extend.callType}];
+            if ([messageModel.messageExtend.identifier isEqualToString:kIdentifierForCall]) {
+                EM_ChatMessageExtendCall *callMessage = (EM_ChatMessageExtendCall *)messageModel.messageExtend.extendBody;
+                [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallActionOut object:nil userInfo:@{kEMCallChatter:self.conversation.chatter,kEMCallType:@(callMessage.callType)}];
             }
         }else if ([handleAction isEqualToString:HANDLE_ACTION_IMAGE]){
-            NSInteger index = [_imageDataArray indexOfObject:messageModel];
-            if (index >= 0 && index < _imageDataArray.count) {
-                [[EM_ChatMessageManager defaultManager] showBrowserWithImagesMessage:_imageDataArray index:index];
+            NSArray *imageArray;
+            if (messageModel.sender) {
+                imageArray = self.imageArray[0];
             }else{
-                [[EM_ChatMessageManager defaultManager] showBrowserWithImagesMessage:@[messageModel] index:0];
+                imageArray = self.imageArray[1];
             }
+            
+            if (![imageArray containsObject:messageModel]) {
+                return;
+            }
+            [[EM_ChatMessageManager defaultManager] showBrowserWithImagesMessage:imageArray index:[imageArray indexOfObject:messageModel]];
         }else if ([handleAction isEqualToString:HANDLE_ACTION_VOICE]){
-            [EM_ChatMessageManager defaultManager].delegate = self;
-            if (messageModel.extend.checking) {
-                messageModel.extend.checking = NO;
+            if (messageModel.messageSign.checking) {
                 [[EM_ChatMessageManager defaultManager] stopVoice];
                 [_chatTableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
             }else{
-                NSInteger index = [_voiceDataArray indexOfObject:messageModel];
-                if (index >= 0 && index < _voiceDataArray.count) {
-                    [[EM_ChatMessageManager defaultManager] playVoice:_voiceDataArray index:index];
+                NSArray *voiceArray;
+                if (messageModel.sender) {
+                    voiceArray = self.voiceArray[0];
                 }else{
-                    [[EM_ChatMessageManager defaultManager] playVoice:@[messageModel] index:0];
+                    voiceArray = self.voiceArray[1];
                 }
+                
+                if (![voiceArray containsObject:messageModel]) {
+                    return;
+                }
+                if([EM_ChatMessageManager defaultManager].isPlaying){
+                    [[EM_ChatMessageManager defaultManager] stopVoice];
+                    [self.chatTableView reloadData];
+                }
+                
+                [[EM_ChatMessageManager defaultManager] playVoice:voiceArray index:[voiceArray indexOfObject:messageModel]];
             }
         }else if ([handleAction isEqualToString:HANDLE_ACTION_VIDEO]){
             [[EM_ChatMessageManager defaultManager] showBrowserWithVideoMessage:messageModel];
@@ -599,12 +650,11 @@ EMDeviceManagerDelegate>
         }
         
         if (!messageModel.sender
-            && !messageModel.extend.details
+            && !messageModel.messageSign.details
             && ![handleAction isEqualToString:HANDLE_ACTION_URL]
             && ![handleAction isEqualToString:HANDLE_ACTION_PHONE]
             && ![handleAction isEqualToString:HANDLE_ACTION_TEXT]){
-            messageModel.extend.details = YES;
-            [messageModel updateExt];
+            messageModel.messageSign.details = YES;
         }
     }else if ([handleFrom isEqualToString:HANDLE_FROM_EXTEND]){
         if (self.delegate && [self.delegate respondsToSelector:@selector(didExtendTapWithUserInfo:)]) {
@@ -670,8 +720,7 @@ EMDeviceManagerDelegate>
         }else if ([action isEqualToString:MENU_ACTION_DOWNLOAD]){
             [self showHint:[EM_ChatResourcesUtils stringWithName:@"error.hint.function_null"]];
         }else if ([action isEqualToString:MENU_ACTION_COLLECT]){
-            message.extend.collected = !message.extend.collected;
-            [message updateExt];
+            message.messageSign.collected = !message.messageSign.collected;
         }else if ([action isEqualToString:MENU_ACTION_FORWARD]){
             [self showHint:[EM_ChatResourcesUtils stringWithName:@"error.hint.function_null"]];
         }
@@ -717,35 +766,27 @@ EMDeviceManagerDelegate>
 }
 
 #pragma mark - EM_ChatMessageManagerDelegate
-- (void)playStartWithMessage:(id)startMessage{
-    NSInteger index = [_dataSource indexOfObject:startMessage];
-    if (index >= 0 && index < _dataSource.count) {
-        [_chatTableView reloadData];
+- (void)didStartPlayWithMessage:(EM_ChatMessageModel *)next previous:(EM_ChatMessageModel *)previous{
+    
+    NSIndexPath *nextIndex = [NSIndexPath indexPathForRow:[self.dataSource indexOfObject:next] inSection:0];
+    NSArray *indexs;
+    
+    if (previous) {
+        NSIndexPath *previousIndex = [NSIndexPath indexPathForRow:[self.dataSource indexOfObject:previous] inSection:0];
+        indexs = @[nextIndex,previousIndex];
+    }else{
+        indexs = @[nextIndex];
     }
+    MAIN(^{
+        [self.chatTableView reloadRowsAtIndexPaths:indexs withRowAnimation:UITableViewRowAnimationNone];
+    });
 }
 
-- (void)playCompletionWithMessage:(id)completionMessage nextMessage:(id)nextMessage{
-    if (completionMessage) {
-        NSMutableArray *reloadArray = [[NSMutableArray alloc]init];
-        
-        NSInteger index = [_dataSource indexOfObject:completionMessage];
-        if (index >= 0 && index < _dataSource.count) {
-            [reloadArray addObject:[NSIndexPath indexPathForRow:index inSection:0]];
-        }
-        
-        if (nextMessage) {
-            index = [_dataSource indexOfObject:nextMessage];
-            if (index >= 0 && index < _dataSource.count) {
-                [reloadArray addObject:[NSIndexPath indexPathForRow:index inSection:0]];
-            }
-        }
-        [_chatTableView reloadRowsAtIndexPaths:reloadArray withRowAnimation:UITableViewRowAnimationNone];
-        EM_ChatMessageModel *messageModel = completionMessage;
-        if (!messageModel.sender) {
-            messageModel.extend.details = YES;
-            [messageModel updateExt];
-        }
-    }
+- (void)didEndPlayWithMessage:(EM_ChatMessageModel *)message{
+    NSIndexPath *index = [NSIndexPath indexPathForRow:[self.dataSource indexOfObject:message] inSection:0];
+    MAIN(^{
+        [self.chatTableView reloadRowsAtIndexPaths:@[index] withRowAnimation:UITableViewRowAnimationNone];
+    });
 }
 
 #pragma mark - UIActionSheetDelegate
@@ -784,21 +825,21 @@ EMDeviceManagerDelegate>
 
 #pragma mark - EM_LocationControllerDelegate
 -(void)sendLatitude:(double)latitude longitude:(double)longitude andAddress:(NSString *)address{
-    EM_ChatMessageExtend *extend = nil;
-    if(self.delegate && [self.delegate respondsToSelector:@selector(extendForMessage:messageType:)]){
-        extend = [self.delegate extendForMessage:address messageType:eMessageBodyType_Location];
-    }
-    [self sendMessage:[EM_ChatMessageModel fromLatitude:latitude longitude:longitude address:address conversation:self.conversation extend:extend]];
+    [self sendMessage:[EM_ChatMessageModel fromLatitude:latitude longitude:longitude address:address conversation:self.conversation ]];
 }
 
 #pragma mark - EM_ExplorerControllerDelegate
 - (void)didFileSelected:(NSArray *)files{
-    for (NSURL *url in files) {
-        EM_ChatMessageExtend *extend = nil;
-        if(self.delegate && [self.delegate respondsToSelector:@selector(extendForMessage:messageType:)]){
-            extend = [self.delegate extendForMessage:url messageType:eMessageBodyType_File];
-        }
-        [self sendMessage:[EM_ChatMessageModel fromFile:url.path name:url.path.lastPathComponent conversation:self.conversation extend:extend]];
+    for (NSString *path in files) {
+        
+        NSString *folder = [path stringByDeletingLastPathComponent];
+        EM_ChatMessageExtendFile *extendBody = [[EM_ChatMessageExtendFile alloc]init];
+        extendBody.fileType = folder.lastPathComponent;
+        
+        EM_ChatMessageModel *messageModel = [EM_ChatMessageModel fromFile:path name:path.lastPathComponent conversation:self.conversation];
+        messageModel.messageExtend.extendBody = extendBody;
+        
+        [self sendMessage:messageModel];
     }
 }
 
@@ -809,12 +850,7 @@ EMDeviceManagerDelegate>
     NSString *mediaType = info[UIImagePickerControllerMediaType];
     if ([mediaType isEqualToString:(NSString *)kUTTypeImage]) {
         UIImage *orgImage = info[UIImagePickerControllerOriginalImage];
-        
-        EM_ChatMessageExtend *extend = nil;
-        if(self.delegate && [self.delegate respondsToSelector:@selector(extendForMessage:messageType:)]){
-            extend = [self.delegate extendForMessage:orgImage messageType:eMessageBodyType_Image];
-        }
-        [self sendMessage:[EM_ChatMessageModel fromImage:orgImage conversation:self.conversation extend:extend]];
+        [self sendMessage:[EM_ChatMessageModel fromImage:orgImage conversation:self.conversation]];
     }else if([mediaType isEqualToString:(NSString *)kUTTypeMovie]){
         NSURL *videoURL = info[UIImagePickerControllerMediaURL];
         
@@ -827,13 +863,7 @@ EMDeviceManagerDelegate>
                 NSLog(@"failed to remove file, error:%@.", error);
             }
         }
-        
-        EM_ChatMessageExtend *extend = nil;
-        if(self.delegate && [self.delegate respondsToSelector:@selector(extendForMessage:messageType:)]){
-            extend = [self.delegate extendForMessage:[mp4 relativePath] messageType:eMessageBodyType_Video];
-        }
-        
-        [self sendMessage:[EM_ChatMessageModel fromVideo:[mp4 relativePath] conversation:self.conversation extend:extend]];
+        [self sendMessage:[EM_ChatMessageModel fromVideo:[mp4 relativePath] conversation:self.conversation]];
     }
 }
 
@@ -897,7 +927,7 @@ EMDeviceManagerDelegate>
     
     EM_ChatMessageCell *cell = [tableView dequeueReusableCellWithIdentifier:cellId];
     if (!cell) {
-        cell = [[EM_ChatMessageCell alloc]initWithBodyClass:[message classForBuildView] extendClass:NSClassFromString(message.extend.viewClassName) reuseIdentifier:cellId];
+        cell = [[EM_ChatMessageCell alloc]initWithBodyClass:[message classForBodyView] extendClass:[[message.messageExtend.extendBody class] viewForClass] reuseIdentifier:cellId];
         cell.backgroundColor = [UIColor clearColor];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         cell.config = self.config.messageConfig;
@@ -936,6 +966,10 @@ EMDeviceManagerDelegate>
 - (void)didReceiveMessage:(EMMessage *)message{
     if ([message.conversationChatter isEqualToString:_conversation.chatter]) {
         [[EaseMob sharedInstance].chatManager sendReadAckForMessage:message];
+        //标记已读
+        if ([UIApplication sharedApplication].applicationState != UIApplicationStateBackground) {
+            [self.conversation markMessageWithId:message.messageId asRead:YES];
+        }
         [self addMessage:message];
     }
 }
@@ -982,6 +1016,10 @@ EMDeviceManagerDelegate>
     if (self.conversation.conversationType != eConversationTypeGroupChat){
         return;
     }
+    
+    [self showHint:[EM_ChatResourcesUtils stringWithName:@"hint.extrude"]];
+    [self.navigationController popViewControllerAnimated:YES];
+    [[EaseMob sharedInstance].chatManager removeConversationsByChatters:@[self.conversation.chatter] deleteMessages:NO append2Chat:YES];
 }
 
 - (void)groupDidUpdateInfo:(EMGroup *)group error:(EMError *)error{
@@ -1011,6 +1049,20 @@ EMDeviceManagerDelegate>
     if (self.conversation.conversationType != eConversationTypeChatRoom){
         return;
     }
+    [self showHint:[EM_ChatResourcesUtils stringWithName:@"hint.extrude"]];
+    [self.navigationController popViewControllerAnimated:YES];
+    [[EaseMob sharedInstance].chatManager removeConversationsByChatters:@[self.conversation.chatter] deleteMessages:NO append2Chat:YES];
+}
+
+#pragma mark - EMCDDeviceManagerDelegate
+- (void)proximitySensorChanged:(BOOL)isCloseToUser{
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+    if (isCloseToUser){
+        [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
+    } else {
+        [audioSession setCategory:AVAudioSessionCategoryPlayback error:nil];
+    }
+    [audioSession setActive:YES error:nil];
 }
 
 @end

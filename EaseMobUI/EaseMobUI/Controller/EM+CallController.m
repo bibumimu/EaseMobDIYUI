@@ -11,6 +11,13 @@
 #import "EM+Common.h"
 #import "EM+ChatResourcesUtils.h"
 #import "EM+ChatMessageExtend.h"
+#import "EM+ChatMessageExtendCall.h"
+#import "UIViewController+HUD.h"
+#import "GPUImageVideoCamera.h"
+#import "GPUImageView.h"
+#import "GPUImageRawDataOutput.h"
+
+#import "UIColor+Hex.h"
 
 #import <SDWebImage/UIImageView+WebCache.h>
 #import <EaseMobSDKFull/EaseMob.h>
@@ -18,26 +25,39 @@
 #import <CoreTelephony/CTCallCenter.h>
 #import <CoreTelephony/CTCall.h>
 #import <AVFoundation/AVFoundation.h>
+#import <pop/POP.h>
 
 #define TimeInterval (1)
 
-@interface EM_CallController ()<AVCaptureVideoDataOutputSampleBufferDelegate,EMCallManagerDelegate>
+@interface EM_CallController ()<GPUImageVideoCameraDelegate,EMCallManagerDelegate>
 
 @property (nonatomic, strong) UIImageView *backgroundView;
 @property (nonatomic, strong) FXBlurView *blurView;
 @property (nonatomic, strong) UIImageView *avatarImageView;
 @property (nonatomic, strong) UILabel *contentLabel;//昵称,时间,状态,原因
+
 @property (nonatomic, strong) UIButton *interruptButton;//挂断
+@property (nonatomic, strong) UILabel *interruptLabel;
+
 @property (nonatomic, strong) UIButton *rejectButton;//拒绝
+@property (nonatomic, strong) UILabel *rejectLabel;
+
 @property (nonatomic, strong) UIButton *agreeButton;//同意
+@property (nonatomic, strong) UILabel *agreeLabel;
+
 @property (nonatomic, strong) UIButton *silenceButton;//静音
+@property (nonatomic, strong) UILabel *silenceLabel;
+
 @property (nonatomic, strong) UIButton *expandButton;//免提
+@property (nonatomic, strong) UILabel *expandLabel;
+
+@property (nonatomic, strong) UIButton *rotateCameraButton;
 
 @property (nonatomic, strong) OpenGLView20 *oppositeView;//对方的画面
-@property (nonatomic, strong) UIView *hereView;//自己的画面
-@property (nonatomic, strong) AVCaptureSession *session;
-@property (nonatomic, strong) AVCaptureDeviceInput *captureInput;
-@property (nonatomic, strong) AVCaptureVideoDataOutput *captureOutput;
+
+@property (nonatomic, strong) GPUImageView *hereView;//自己的画面
+@property (nonatomic, strong) GPUImageVideoCamera *camera;
+
 
 @property (nonatomic, strong) EM_ChatBuddy *buddy;
 
@@ -50,14 +70,16 @@
     BOOL _reject;
     BOOL _agree;
     BOOL _hangup;
+    BOOL _exchange;
     EMCallStatusChangedReason _reason;
     AVAudioPlayer *_ringPlayer;
     UInt8 *_imageDataBuffer;
     
-    BOOL showControl;
+    BOOL hiddenControl;
+    CGPoint startPoint;
 }
 
-- (instancetype)initWithSession:(EMCallSession *)session type:(EMChatCallType)type action:(EMChatCallAction)action{
+- (instancetype)initWithSession:(EMCallSession *)session type:(NSInteger)type action:(EMChatCallAction)action{
     self = [super init];
     if (self) {
         _callSession = session;
@@ -71,7 +93,6 @@
             _buddy = [[EM_ChatBuddy alloc]init];
             _buddy.uid = _callSession.sessionChatter;
             _buddy.displayName = _callSession.sessionChatter;
-            
         }
     }
     return self;
@@ -79,84 +100,66 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    NSString *callType;
-    if (_callType == EMChatCallTypeVoice) {
-        callType = kEMCallTypeVoice;
-    }else{
-        callType = kEMCallTypeVideo;
-    }
-    [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallShow object:nil userInfo:@{kEMCallChatter:self.callSession.sessionChatter,kEMCallType:callType}];
+    [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallShow object:nil userInfo:@{kEMCallChatter:self.callSession.sessionChatter,kEMCallType:@(self.callType)}];
     
+    self.view.backgroundColor = [UIColor whiteColor];
     _backgroundView = [[UIImageView alloc]initWithFrame:self.view.frame];
     _backgroundView.contentMode = UIViewContentModeScaleAspectFill;
     [self.view addSubview:_backgroundView];
+    
     [FXBlurView setBlurEnabled:YES];
+    CALayer *layer = [CALayer layer];
+    layer.frame = self.view.frame;
+    layer.backgroundColor = [UIColor colorWithHexRGB:0x000000 Alpha:0.5].CGColor;
+    
     _blurView = [[FXBlurView alloc]init];
-    _blurView.backgroundColor = [UIColor whiteColor];
     _blurView.frame = self.view.frame;
+    [_blurView.layer addSublayer:layer];
     [self.view addSubview:_blurView];
     
-    if (self.callType == EMChatCallTypeVideo) {
+    if (self.callType == eCallSessionTypeVideo) {
         [UIApplication sharedApplication].idleTimerDisabled = YES;
-        _oppositeView = [[OpenGLView20 alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
-        _oppositeView.backgroundColor = [UIColor clearColor];
-        _oppositeView.sessionPreset = AVCaptureSessionPreset640x480;
+        
+        //对方画面
+        _oppositeView = [[OpenGLView20 alloc] initWithFrame:self.view.frame];
+        _oppositeView.layer.masksToBounds = YES;
         [self.view addSubview:_oppositeView];
+        _callSession.displayView = _oppositeView;
         
-        CGFloat width = 80;
-        CGFloat height = _oppositeView.frame.size.height / _oppositeView.frame.size.width * width;
-        
-        _hereView = [[UIView alloc] initWithFrame:CGRectMake(self.view.frame.size.width - width,
-                                                             self.view.frame.size.height - height, width, height)];
-        _hereView.backgroundColor = [UIColor clearColor];
+        //自己的画面
+        _hereView = [[GPUImageView alloc] initWithFrame:self.view.frame];
+        _hereView.fillMode = kGPUImageFillModePreserveAspectRatioAndFill;
         [self.view addSubview:_hereView];
         
-        //创建会话层
-        _session = [[AVCaptureSession alloc] init];
-        [_session setSessionPreset:_oppositeView.sessionPreset];
+        _camera = [[GPUImageVideoCamera alloc]initWithSessionPreset:_oppositeView.sessionPreset cameraPosition:AVCaptureDevicePositionFront];
+        _camera.outputImageOrientation = UIInterfaceOrientationPortrait;
+        _camera.horizontallyMirrorFrontFacingCamera = YES;
+        _camera.horizontallyMirrorRearFacingCamera = YES;
+        _camera.delegate = self;
+        [_camera addTarget:_hereView];
+        [_camera startCameraCapture];
         
-        AVCaptureDevice *device;
-        NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
-        for (AVCaptureDevice *tmp in devices){
-            if (tmp.position == AVCaptureDevicePositionFront){
-                device = tmp;
-                break;
-            }
-        }
         
-        NSError *error = nil;
-        _captureInput = [AVCaptureDeviceInput deviceInputWithDevice:device error:&error];
-        [_session beginConfiguration];
-        if(!error){
-            [_session addInput:_captureInput];
-        }else{
-            NSLog(@"无法开启摄像头");
-        }
+        UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tap:)];
+        [self.view addGestureRecognizer:tap];
+        UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(pan:)];
+        [pan requireGestureRecognizerToFail:tap];
+        [self.hereView addGestureRecognizer:pan];
         
-        dispatch_queue_t outQueue = dispatch_queue_create("com.zhou.em", NULL);
-        _captureOutput = [[AVCaptureVideoDataOutput alloc] init];
-        _captureOutput.videoSettings = _oppositeView.outputSettings;
-        _captureOutput.minFrameDuration = CMTimeMake(1, 15);
-        _captureOutput.alwaysDiscardsLateVideoFrames = YES;
-        [_captureOutput setSampleBufferDelegate:self queue:outQueue];
-        [_session addOutput:_captureOutput];
-        [_session commitConfiguration];
-        
-        //6.小窗口显示层
-        AVCaptureVideoPreviewLayer *hereCaptureLayer = [AVCaptureVideoPreviewLayer layerWithSession:_session];
-        hereCaptureLayer.frame = CGRectMake(0, 0, width, height);
-        hereCaptureLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
-        [_hereView.layer addSublayer:hereCaptureLayer];
-        
-        [_session startRunning];
-        _callSession.displayView = _oppositeView;
+        _rotateCameraButton = [[UIButton alloc]init];
+        _rotateCameraButton.titleLabel.font = [EM_ChatResourcesUtils iconFontWithSize:20];
+        [_rotateCameraButton setTitle:kEMChatIconCallReset forState:UIControlStateNormal];
+        [_rotateCameraButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [_rotateCameraButton sizeToFit];
+        _rotateCameraButton.center = CGPointMake(self.view.frame.size.width - _rotateCameraButton.frame.size.width / 2 - 15, 50);
+        [_rotateCameraButton addTarget:self action:@selector(rotateCamera:) forControlEvents:UIControlEventTouchUpInside];
+        [self.view addSubview:_rotateCameraButton];
     }
     
     
     _avatarImageView = [[UIImageView alloc]init];
-    _avatarImageView.backgroundColor = [UIColor greenColor];
-    _avatarImageView.bounds = CGRectMake(0, 0, 80, 80);
-    _avatarImageView.center = CGPointMake(self.view.frame.size.width / 2, 100);
+    _avatarImageView.bounds = CGRectMake(0, 0, 120, 120);
+    _avatarImageView.center = CGPointMake(self.view.frame.size.width / 2, 200);
     _avatarImageView.layer.masksToBounds = YES;
     _avatarImageView.layer.cornerRadius = _avatarImageView.bounds.size.width / 2;
     _avatarImageView.image = [EM_ChatResourcesUtils defaultAvatarImage];
@@ -167,7 +170,7 @@
     _backgroundView.image = _avatarImageView.image;
     
     _contentLabel = [[UILabel alloc]init];
-    _contentLabel.textColor = [UIColor blackColor];
+    _contentLabel.textColor = [UIColor whiteColor];
     _contentLabel.textAlignment = NSTextAlignmentCenter;
     _contentLabel.numberOfLines = 0;
     _contentLabel.lineBreakMode = NSLineBreakByWordWrapping;
@@ -176,59 +179,103 @@
     [self.view addSubview:_contentLabel];
     
     _interruptButton = [[UIButton alloc]init];
-    _interruptButton.backgroundColor = [UIColor redColor];
+    _interruptButton.backgroundColor = [UIColor colorWithHexRGB:0xff3b30];
     _interruptButton.bounds = CGRectMake(0, 0, 60, 60);
     _interruptButton.center = CGPointMake(self.view.frame.size.width / 2, self.view.frame.size.height - 100);
     _interruptButton.layer.masksToBounds = YES;
     _interruptButton.layer.cornerRadius = _interruptButton.frame.size.width / 2;
-    _interruptButton.titleLabel.font = [EM_ChatResourcesUtils iconFontWithSize:16];
+    _interruptButton.titleLabel.font = [EM_ChatResourcesUtils iconFontWithSize:26];
     [_interruptButton setTitle:kEMChatIconCallHangup forState:UIControlStateNormal];
+    [_interruptButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [_interruptButton addTarget:self action:@selector(interruptCall:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:_interruptButton];
     
+    _interruptLabel = [[UILabel alloc]init];
+    _interruptLabel.textColor = [UIColor whiteColor];
+    _interruptLabel.text = [EM_ChatResourcesUtils stringWithName:@"call.title_interrupt"];
+    [_interruptLabel sizeToFit];
+    _interruptLabel.center = CGPointMake(_interruptButton.center.x, _interruptButton.center.y + _interruptButton.frame.size.height);
+    [self.view addSubview:_interruptLabel];
+    
     _rejectButton = [[UIButton alloc]init];
-    _rejectButton.backgroundColor = [UIColor redColor];
+    _rejectButton.backgroundColor = [UIColor colorWithHexRGB:0xff3b30];
     _rejectButton.bounds = CGRectMake(0, 0, 60, 60);
-    _rejectButton.center = CGPointMake(_interruptButton.center.x - _interruptButton.frame.size.width / 2 - _rejectButton.frame.size.width / 2, _interruptButton.center.y);
+    _rejectButton.center = CGPointMake(_interruptButton.center.x - _interruptButton.frame.size.width - _rejectButton.frame.size.width / 2, _interruptButton.center.y);
     _rejectButton.layer.masksToBounds = YES;
     _rejectButton.layer.cornerRadius = _rejectButton.frame.size.width / 2;
-    _rejectButton.titleLabel.font = [EM_ChatResourcesUtils iconFontWithSize:16];
+    _rejectButton.titleLabel.font = [EM_ChatResourcesUtils iconFontWithSize:26];
     [_rejectButton setTitle:kEMChatIconCallHangup forState:UIControlStateNormal];
+    [_rejectButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [_rejectButton addTarget:self action:@selector(rejectCall:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:_rejectButton];
     
+    _rejectLabel = [[UILabel alloc]init];
+    _rejectLabel.textColor = [UIColor whiteColor];
+    _rejectLabel.text = [EM_ChatResourcesUtils stringWithName:@"call.title_reject"];
+    [_rejectLabel sizeToFit];
+    _rejectLabel.center = CGPointMake(_rejectButton.center.x, _rejectButton.center.y + _rejectButton.frame.size.height);
+    [self.view addSubview:_rejectLabel];
+    
     _agreeButton = [[UIButton alloc]init];
-    _agreeButton.backgroundColor = [UIColor greenColor];
+    _agreeButton.backgroundColor = [UIColor colorWithHexRGB:0x08F048];
     _agreeButton.bounds = CGRectMake(0, 0, 60, 60);
-    _agreeButton.center = CGPointMake(_interruptButton.center.x + _interruptButton.frame.size.width / 2 + _agreeButton.frame.size.width / 2, _interruptButton.center.y);
+    _agreeButton.center = CGPointMake(_interruptButton.center.x + _interruptButton.frame.size.width + _agreeButton.frame.size.width / 2, _interruptButton.center.y);
     _agreeButton.layer.masksToBounds = YES;
     _agreeButton.layer.cornerRadius = _agreeButton.frame.size.width / 2;
-    _agreeButton.titleLabel.font = [EM_ChatResourcesUtils iconFontWithSize:16];
+    _agreeButton.titleLabel.font = [EM_ChatResourcesUtils iconFontWithSize:26];
     [_agreeButton setTitle:kEMChatIconCallConnect forState:UIControlStateNormal];
+    [_agreeButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [_agreeButton addTarget:self action:@selector(agreeCall:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:_agreeButton];
     
+    _agreeLabel = [[UILabel alloc]init];
+    _agreeLabel.textColor = [UIColor whiteColor];
+    _agreeLabel.text = [EM_ChatResourcesUtils stringWithName:@"call.title_agree"];
+    [_agreeLabel sizeToFit];
+    _agreeLabel.center = CGPointMake(_agreeButton.center.x, _agreeButton.center.y + _agreeButton.frame.size.height);
+    [self.view addSubview:_agreeLabel];
+    
     _silenceButton = [[UIButton alloc]init];
-    _silenceButton.backgroundColor = [UIColor greenColor];
-    _silenceButton.bounds = CGRectMake(0, 0, 40, 40);
-    _silenceButton.center = CGPointMake(_agreeButton.center.x + _agreeButton.frame.size.width, _agreeButton.center.y);
+    _silenceButton.bounds = CGRectMake(0, 0, 60, 60);
+    _silenceButton.center = CGPointMake(self.view.frame.size.width - COMMON_PADDING - _silenceButton.frame.size.width / 2, _agreeButton.center.y);
     _silenceButton.layer.masksToBounds = YES;
     _silenceButton.layer.cornerRadius = _silenceButton.bounds.size.width / 2;
-    _silenceButton.titleLabel.font = [EM_ChatResourcesUtils iconFontWithSize:12];
+    _silenceButton.layer.borderColor = [UIColor whiteColor].CGColor;
+    _silenceButton.layer.borderWidth = LINE_WIDTH * 2;
+    _silenceButton.titleLabel.font = [EM_ChatResourcesUtils iconFontWithSize:26];
     [_silenceButton setTitle:kEMChatIconCallSilence forState:UIControlStateNormal];
+    [_silenceButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [_silenceButton setTitleColor:[UIColor blackColor] forState:UIControlStateSelected];
     [_silenceButton addTarget:self action:@selector(silenceCall:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:_silenceButton];
     
+    _silenceLabel = [[UILabel alloc]init];
+    _silenceLabel.textColor = [UIColor whiteColor];
+    _silenceLabel.text = [EM_ChatResourcesUtils stringWithName:@"call.title_silence"];
+    [_silenceLabel sizeToFit];
+    _silenceLabel.center = CGPointMake(_silenceButton.center.x, _silenceButton.center.y + _silenceButton.frame.size.height);
+    [self.view addSubview:_silenceLabel];
+    
     _expandButton = [[UIButton alloc]init];
-    _expandButton.backgroundColor = [UIColor greenColor];
-    _expandButton.bounds = CGRectMake(0, 0, 40, 40);
-    _expandButton.center = CGPointMake(_rejectButton.center.x - _rejectButton.frame.size.width, _agreeButton.center.y);
+    _expandButton.bounds = CGRectMake(0, 0, 60, 60);
+    _expandButton.center = CGPointMake(COMMON_PADDING + _expandButton.frame.size.width / 2, _agreeButton.center.y);
     _expandButton.layer.masksToBounds = YES;
     _expandButton.layer.cornerRadius = _expandButton.bounds.size.width / 2;
-    _expandButton.titleLabel.font = [EM_ChatResourcesUtils iconFontWithSize:12];
+    _expandButton.layer.borderColor = [UIColor whiteColor].CGColor;
+    _expandButton.layer.borderWidth = LINE_WIDTH * 2;
+    _expandButton.titleLabel.font = [EM_ChatResourcesUtils iconFontWithSize:26];
     [_expandButton setTitle:kEMChatIconCallExpand forState:UIControlStateNormal];
+    [_expandButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [_expandButton setTitleColor:[UIColor blackColor] forState:UIControlStateSelected];
     [_expandButton addTarget:self action:@selector(expandCall:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:_expandButton];
+    
+    _expandLabel = [[UILabel alloc]init];
+    _expandLabel.textColor = [UIColor whiteColor];
+    _expandLabel.text = [EM_ChatResourcesUtils stringWithName:@"call.title_expand"];
+    [_expandLabel sizeToFit];
+    _expandLabel.center = CGPointMake(_expandButton.center.x, _expandButton.center.y + _expandButton.frame.size.height);
+    [self.view addSubview:_expandLabel];
     
     [self setCallState:EMChatCallStateWait];
     
@@ -243,10 +290,6 @@
             [[EaseMob sharedInstance].callManager asyncEndCall:self.callSession.sessionId reason:eCallReason_Hangup];
         }
     };
-    
-    showControl = YES;
-    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(viewTap:)];
-    [self.view addGestureRecognizer:tap];
 }
 
 - (void)dealloc{
@@ -256,40 +299,86 @@
         [_ringPlayer stop];
     }
     _ringPlayer = nil;
-    if (_session) {
-        [_session stopRunning];
+    if (_camera) {
+        [_camera stopCameraCapture];
     }
-    _session = nil;
+    _camera = nil;
     
     _oppositeView = nil;
     _hereView = nil;
     
     [[EaseMob sharedInstance].callManager removeDelegate:self];
-    NSString *callType;
-    if (_callType == EMChatCallTypeVoice) {
-        callType = kEMCallTypeVoice;
-    }else{
-        callType = kEMCallTypeVideo;
-    }
-    [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallDismiss object:nil userInfo:@{kEMCallChatter:self.callSession.sessionChatter,kEMCallType:callType}];
+    [[NSNotificationCenter defaultCenter] postNotificationName:kEMNotificationCallDismiss object:nil userInfo:@{kEMCallChatter:self.callSession.sessionChatter,kEMCallType:@(self.callType)}];
 }
 
 #pragma mark - private
-- (void)viewTap:(id)sender{
-    if (self.callType == EMChatCallTypeVideo && self.callState == EMChatCallStateIn) {
-        if (showControl) {
-            _avatarImageView.hidden = YES;
-            _interruptButton.hidden = YES;
-            _silenceButton.hidden = YES;
-            _expandButton.hidden = YES;
-        }else{
-            _avatarImageView.hidden = NO;
-            _interruptButton.hidden = NO;
-            _silenceButton.hidden = NO;
-            _expandButton.hidden = NO;
-        }
-        showControl = !showControl;
+- (void)rotateCamera:(id)sender{
+    if (self.camera) {
+        [self.camera rotateCamera];
     }
+}
+
+- (void)tap:(UITapGestureRecognizer *)recognizer{
+    CGPoint point = [recognizer locationInView:self.hereView];
+    if (CGRectContainsPoint(self.hereView.bounds, point)) {
+        //切换画面
+//        [self.view exchangeSubviewAtIndex:[self.view.subviews indexOfObject:self.oppositeView] withSubviewAtIndex:[self.view.subviews indexOfObject:self.hereView]];
+//        if (_exchange) {
+//            self.hereView.frame = self.oppositeView.frame;
+//            self.oppositeView.frame = self.view.frame;
+//        }else{
+//            [self.oppositeView bringSubviewToFront:self.hereView];
+//            self.oppositeView.frame = self.hereView.frame;
+//            self.hereView.frame = self.view.frame;
+//        }
+//        _exchange = !_exchange;
+    }else{
+        if (self.callType == eCallSessionTypeVideo && self.callState == EMChatCallStateIn) {
+            [self setViewHeidden:!hiddenControl];
+        }
+    }
+}
+
+- (void)pan:(UIPanGestureRecognizer *)recognizer{
+    CGPoint point = [recognizer locationInView:self.hereView];
+    if (recognizer.state == UIGestureRecognizerStateBegan) {
+        if (self.callType == eCallSessionTypeVideo && self.callState == EMChatCallStateIn) {
+            [self setViewHeidden:YES];
+        }
+        startPoint = point;
+    }else{
+        float dx = point.x - startPoint.x;
+        float dy = point.y - startPoint.y;
+        
+        CGPoint newCenter = CGPointMake(self.hereView.center.x + dx, self.hereView.center.y + dy);
+        
+        float halfx = CGRectGetMidX(self.hereView.bounds);
+        float halfy = CGRectGetMidY(self.hereView.bounds);
+        
+        newCenter.x = MAX(halfx, newCenter.x);
+        newCenter.x = MIN(self.view.bounds.size.width - halfx, newCenter.x);
+        
+        newCenter.y = MAX(halfy,newCenter.y);
+        newCenter.y = MIN(self.view.bounds.size.height - halfy, newCenter.y);
+        
+        self.hereView.center = newCenter;
+    }
+}
+
+- (void)setViewHeidden:(BOOL)hidden{
+    _avatarImageView.hidden = hidden;
+    _interruptButton.hidden = hidden;
+    _interruptLabel.hidden = hidden;
+    
+    _silenceButton.hidden = hidden;
+    _silenceLabel.hidden = hidden;
+    
+    _expandButton.hidden = hidden;
+    _expandLabel.hidden = hidden;
+    
+    _contentLabel.hidden = hidden;
+    _rotateCameraButton.hidden = hidden;
+    hiddenControl = hidden;
 }
 
 - (void)setCallState:(EMChatCallState)callState{
@@ -298,8 +387,13 @@
             if (self.callAction == EMChatCallActionIn) {
                 _contentLabel.text = [NSString stringWithFormat:[EM_ChatResourcesUtils stringWithName:@"call.in"],_buddy.displayName];
                 _interruptButton.hidden = YES;
+                _interruptLabel.hidden = YES;
+                
                 _rejectButton.hidden = NO;
+                _rejectLabel.hidden = NO;
+                
                 _agreeButton.hidden = NO;
+                _agreeLabel.hidden = NO;
                 NSError *error;
                 NSString *ringPath = [[NSBundle mainBundle] pathForResource:@"callRing" ofType:@"mp3" inDirectory:@"EM_Resource.bundle/media"];
                 _ringPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[[NSURL alloc] initWithString:ringPath] error:&error];
@@ -313,13 +407,21 @@
             }else{
                 _contentLabel.text = [NSString stringWithFormat:[EM_ChatResourcesUtils stringWithName:@"call.out"],_buddy.displayName];
                 _interruptButton.hidden = NO;
+                _interruptLabel.hidden = NO;
+                
                 _rejectButton.hidden = YES;
+                _rejectLabel.hidden = YES;
+                
                 _agreeButton.hidden = YES;
+                _agreeLabel.hidden = YES;
             }
             [_contentLabel sizeToFit];
             _contentLabel.center = CGPointMake(self.view.frame.size.width / 2,_avatarImageView.frame.origin.y + _avatarImageView.frame.size.height + 10 + _contentLabel.frame.size.height / 2);
             _silenceButton.hidden = YES;
+            _silenceLabel.hidden = YES;
+            
             _expandButton.hidden = YES;
+            _expandLabel.hidden = YES;
         }
             break;
         case EMChatCallStateIn:{
@@ -328,15 +430,41 @@
                 [_contentLabel sizeToFit];
                 _contentLabel.center = CGPointMake(self.view.frame.size.width / 2,_avatarImageView.frame.origin.y + _avatarImageView.frame.size.height + 10 + _contentLabel.frame.size.height / 2);
                 _interruptButton.hidden = NO;
+                _interruptLabel.hidden = NO;
+                
                 _rejectButton.hidden = YES;
+                _rejectLabel.hidden = YES;
+                
                 _agreeButton.hidden = YES;
+                _agreeLabel.hidden = YES;
+                
                 _silenceButton.hidden = NO;
+                _silenceLabel.hidden = NO;
+                
                 _expandButton.hidden = NO;
+                _expandLabel.hidden = NO;
                 
                 if (_ringPlayer) {
                     [_ringPlayer stop];
                 }
                 _ringPlayer = nil;
+                
+                if (self.hereView) {
+                    CGRect frame = self.hereView.frame;
+                    frame.origin.x = self.view.frame.size.width / 3 * 2;
+                    frame.origin.y = self.view.frame.size.height / 3 * 2;
+                    frame.size.width = self.view.frame.size.width / 3;
+                    frame.size.height = self.view.frame.size.height / 3;
+                    
+
+                    POPBasicAnimation *anim = [POPBasicAnimation animationWithPropertyNamed:kPOPViewFrame];
+                    anim.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+                    anim.toValue = [NSValue valueWithCGRect:frame];
+                    anim.duration = 2;
+                    [_hereView pop_addAnimation:anim forKey:@"anim"];
+
+                    [self setViewHeidden:YES];
+                }
             }
         }
             break;
@@ -411,10 +539,19 @@
             [_contentLabel sizeToFit];
             _contentLabel.center = CGPointMake(self.view.frame.size.width / 2,_avatarImageView.frame.origin.y + _avatarImageView.frame.size.height + 10 + _contentLabel.frame.size.height / 2);
             _interruptButton.hidden = YES;
+            _interruptLabel.hidden = YES;
+            
             _rejectButton.hidden = YES;
+            _rejectLabel.hidden = YES;
+            
             _agreeButton.hidden = YES;
+            _agreeLabel.hidden = YES;
+            
             _silenceButton.hidden = YES;
+            _silenceLabel.hidden = YES;
+            
             _expandButton.hidden = YES;
+            _expandLabel.hidden = YES;
             
             if (_ringPlayer) {
                 [_ringPlayer stop];
@@ -422,26 +559,26 @@
             _ringPlayer = nil;
             
             BACK((^{
-                EM_ChatMessageExtend *extend = [[EM_ChatMessageExtend alloc]init];
+                EM_ChatMessageExtendCall *extendBody = [[EM_ChatMessageExtendCall alloc]init];
                 NSString *text = nil;
-                if (_callType == EMChatCallTypeVoice) {
-                    extend.callType = kEMCallTypeVoice;
-                    
+                if (self.callType == eCallSessionTypeAudio) {
                     text = [NSString stringWithFormat:@"%@%@",[EM_ChatResourcesUtils stringWithName:@"common.message_type_call_voice"],hintMessage];
                 }else{
-                    extend.callType = kEMCallTypeVideo;
                     text = [NSString stringWithFormat:@"%@%@",[EM_ChatResourcesUtils stringWithName:@"common.message_type_call_video"],hintMessage];
                 }
-                if (extend.callType) {
-                    EMChatText *chatText = [[EMChatText alloc] initWithText:text];
-                    EMTextMessageBody *textBody = [[EMTextMessageBody alloc] initWithChatObject:chatText];
-                    EMMessage *message = [[EMMessage alloc] initWithReceiver:_callSession.sessionChatter bodies:@[textBody]];
-                    message.isRead = YES;
-                    message.deliveryState = eMessageDeliveryState_Delivered;
-                    message.ext = [extend toDictionary];
-                    
-                    [[EaseMob sharedInstance].chatManager insertMessagesToDB:@[message] forChatter:_callSession.sessionChatter append2Chat:YES];
-                }
+                extendBody.callType = self.callType;
+                
+                EM_ChatMessageExtend *extend = [[EM_ChatMessageExtend alloc]init];
+                extend.extendBody = extendBody;
+                
+                EMChatText *chatText = [[EMChatText alloc] initWithText:text];
+                EMTextMessageBody *textBody = [[EMTextMessageBody alloc] initWithChatObject:chatText];
+                EMMessage *message = [[EMMessage alloc] initWithReceiver:_callSession.sessionChatter bodies:@[textBody]];
+                message.isRead = YES;
+                message.deliveryState = eMessageDeliveryState_Delivered;
+                message.ext = [extend toDictionary];
+                
+                [[EaseMob sharedInstance].chatManager insertMessagesToDB:@[message] forChatter:_callSession.sessionChatter append2Chat:YES];
                 sleep(3);
                 MAIN(^{
                     [self dismissViewControllerAnimated:YES completion:nil];
@@ -493,13 +630,6 @@
     _contentLabel.text = [NSString stringWithFormat:[EM_ChatResourcesUtils stringWithName:@"call.ongoing"],_buddy.displayName,[self stringWithTime]];
     [_contentLabel sizeToFit];
     _contentLabel.center = CGPointMake(self.view.frame.size.width / 2,_avatarImageView.frame.origin.y + _avatarImageView.frame.size.height + 10 + _contentLabel.frame.size.height / 2);
-    
-    if (self.callAction == EMChatCallTypeVideo) {
-        _avatarImageView.hidden = YES;
-        _interruptButton.hidden = YES;
-        _silenceButton.hidden = YES;
-        _expandButton.hidden = YES;
-    }
 }
 
 /**
@@ -547,6 +677,15 @@
  */
 - (void)silenceCall:(UIButton *)sender{
     sender.selected = !sender.selected;
+    if (sender.selected) {
+        sender.backgroundColor = [UIColor whiteColor];
+        _expandButton.selected = NO;
+        _expandButton.backgroundColor = [UIColor clearColor];
+        [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
+    }else{
+        sender.backgroundColor = [UIColor clearColor];
+    }
+    
     [[EaseMob sharedInstance].callManager markCallSession:self.callSession.sessionId asSilence:sender.selected];
 }
 
@@ -557,13 +696,16 @@
  */
 - (void)expandCall:(UIButton *)sender{
     sender.selected = !sender.selected;
-    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     if (sender.selected) {
-        [audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
-    }else {
-        [audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
+        sender.backgroundColor = [UIColor whiteColor];
+        _silenceButton.selected = NO;
+        _silenceButton.backgroundColor = [UIColor clearColor];
+        [[EaseMob sharedInstance].callManager markCallSession:self.callSession.sessionId asSilence:NO];
+        [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
+    }else{
+        sender.backgroundColor = [UIColor clearColor];
+        [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
     }
-    [audioSession setActive:YES error:nil];
 }
 
 #pragma mark - EMCallManagerDelegate
@@ -582,26 +724,23 @@
     }
 }
 
-#pragma mark - AVCaptureVideoDataOutputSampleBufferDelegate
-- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection{
+#pragma mark - GPUImageVideoCameraDelegate
+- (void)didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer{
     if (_callSession.status != eCallSessionStatusAccepted) {
         return;
     }
     
-    CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+    CMSampleBufferRef dataBuffer = sampleBuffer;
+    CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(dataBuffer);
     if(CVPixelBufferLockBaseAddress(imageBuffer, 0) == kCVReturnSuccess){
-        //UInt8 *bufferbasePtr = (UInt8 *)CVPixelBufferGetBaseAddress(imageBuffer);
         UInt8 *bufferPtr = (UInt8 *)CVPixelBufferGetBaseAddressOfPlane(imageBuffer, 0);
         UInt8 *bufferPtr1 = (UInt8 *)CVPixelBufferGetBaseAddressOfPlane(imageBuffer, 1);
         
-        //        size_t buffeSize = CVPixelBufferGetDataSize(imageBuffer);
         size_t width = CVPixelBufferGetWidth(imageBuffer);
         size_t height = CVPixelBufferGetHeight(imageBuffer);
-        //        size_t bytesPerRow = CVPixelBufferGetBytesPerRow(imageBuffer);
+        
         size_t bytesrow0 = CVPixelBufferGetBytesPerRowOfPlane(imageBuffer, 0);
         size_t bytesrow1  = CVPixelBufferGetBytesPerRowOfPlane(imageBuffer, 1);
-        //        size_t bytesrow2 = CVPixelBufferGetBytesPerRowOfPlane(imageBuffer, 2);
-        //        printf("buffeSize:%d,width:%d,height:%d,bytesPerRow:%d,bytesrow0 :%d,bytesrow1 :%d,bytesrow2 :%d\n",buffeSize,width,height,bytesPerRow,bytesrow0,bytesrow1,bytesrow2);
         
         if (_imageDataBuffer == nil) {
             _imageDataBuffer = (UInt8 *)malloc(width * height * 3 / 2);
@@ -623,9 +762,7 @@
         }
         
         YUV420spRotate90(bufferPtr, _imageDataBuffer, width, height);
-        [[EaseMob sharedInstance].callManager processPreviewData:(char *)bufferPtr width:width height:height];
-        
-        /*We unlock the buffer*/
+        [[EaseMob sharedInstance].callManager processPreviewData:(char *)bufferPtr width:(int)width height:(int)height];
         CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
     }
 }
@@ -638,7 +775,7 @@ void YUV420spRotate90(UInt8 *  dst, UInt8* src, size_t srcWidth, size_t srcHeigh
     //旋转Y
     int k = 0;
     for(int i = 0; i < srcWidth; i++) {
-        int nPos = wh - srcWidth;
+        int nPos = (int)(wh - srcWidth);
         for(int j = 0; j < srcHeight; j++) {
             dst[k] = src[nPos + i];
             k++;
@@ -646,7 +783,7 @@ void YUV420spRotate90(UInt8 *  dst, UInt8* src, size_t srcWidth, size_t srcHeigh
         }
     }
     for(int i = 0; i < uvWidth; i++) {
-        int nPos = wh+uvwh-uvWidth;
+        int nPos = (int)(wh + uvwh - uvWidth);
         for(int j = 0; j < uvHeight; j++) {
             dst[k] = src[nPos + i];
             dst[k+uvwh] = src[nPos + i+uvwh];

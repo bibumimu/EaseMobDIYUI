@@ -43,6 +43,10 @@ NSString * const MENU_ACTION_DOWNLOAD   = @"MENU_ACTION_DOWNLOAD";
 NSString * const MENU_ACTION_COLLECT    = @"MENU_ACTION_COLLECT";
 NSString * const MENU_ACTION_FORWARD    = @"MENU_ACTION_FORWARD";
 
++ (CGSize )sizeForContentWithMessage:(EM_ChatMessageModel *)message maxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config{
+    return CGSizeZero;
+}
+
 - (instancetype)init{
     self = [super init];
     if (self) {

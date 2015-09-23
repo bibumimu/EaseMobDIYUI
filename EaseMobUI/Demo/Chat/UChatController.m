@@ -19,9 +19,6 @@
     self = [super initWithConversation:conversation];
     if (self) {
         self.delegate = self;
-        EM_ChatMessageExtend *extend = [[UserCustomExtend alloc]init];
-        extend.showBody = YES;
-        extend.showExtend = NO;
     }
     return self;
 }
@@ -44,11 +41,8 @@
 }
 
 #define mark - EM_ChatControllerDelegate
-- (EM_ChatMessageExtend *)extendForMessage:(id)body messageType:(MessageBodyType)type{
-    EM_ChatMessageExtend *extend = [[UserCustomExtend alloc]init];
-    extend.showBody = YES;
-    extend.showExtend = NO;
-    return extend;
+- (void)extendForMessage:(EM_ChatMessageModel *)message{
+    message.messageExtend.extendAttributes = @{@"a":@"不显示的属性"};
 }
 
 - (void)didActionSelectedWithName:(NSString *)name{

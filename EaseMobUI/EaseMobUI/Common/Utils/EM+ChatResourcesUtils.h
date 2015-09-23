@@ -35,18 +35,18 @@ extern NSString * const kEMChatIconMoreStop;
 extern NSString * const kEMChatIconBubbleTailLeft;
 extern NSString * const kEMChatIconBubbleTailRight;
 
-extern NSString * const kEMChatIconCallHangup;
-extern NSString * const kEMChatIconCallConnect;
 extern NSString * const kEMChatIconCallSilence;
 extern NSString * const kEMChatIconCallExpand;
-
-extern NSString * const kEMChatIconBuddyShrink;
-extern NSString * const kEMChatIconBuddyStretch;
+extern NSString * const kEMChatIconCallVideoPlay;
+extern NSString * const kEMChatIconCallConnect;
+extern NSString * const kEMChatIconCallHangup;
 
 extern NSString * const kEMChatIconBuddyNew;
 extern NSString * const kEMChatIconBuddyGroup;
 extern NSString * const kEMChatIconBuddyRoom;
 extern NSString * const kEMChatIconBuddyBlacklist;
+
+extern NSString * const kEMChatIconCallReset;
 
 @interface EM_ChatResourcesUtils : NSObject
 
@@ -58,5 +58,8 @@ extern NSString * const kEMChatIconBuddyBlacklist;
 + (UIImage *)callImageWithName:(NSString *)name;
 + (UIImage *)fileImageWithName:(NSString *)name;
 + (UIFont *)iconFontWithSize:(float)size;
+
++ (NSArray *)loadingImageArray;
++ (NSArray *)pullingImageArray;
 
 @end

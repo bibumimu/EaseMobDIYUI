@@ -8,6 +8,7 @@
 
 #import "EM+ChatMessageManager.h"
 #import "EM+ChatMessageModel.h"
+#import "EM_ChatMessage.h"
 #import "EMCDDeviceManager.h"
 
 #import <MWPhotoBrowser/MWPhotoBrowser.h>
@@ -16,18 +17,18 @@ static EM_ChatMessageManager *detailInstance = nil;
 
 @interface EM_ChatMessageManager()<MWPhotoBrowserDelegate>
 
-@property (strong, nonatomic) UIWindow *keyWindow;
-@property (nonatomic,strong) UINavigationController *photoNavigationController;
-@property (nonatomic,strong) MWPhotoBrowser *photoBrowser;
-@property (nonatomic,strong) NSMutableArray *photoArray;
+@property (nonatomic, strong) UIWindow *keyWindow;
+@property (nonatomic, strong) UINavigationController *photoNavigationController;
+@property (nonatomic, strong) MWPhotoBrowser *photoBrowser;
+@property (nonatomic, strong) NSMutableArray *photoArray;
 
-@property (nonatomic,strong) NSMutableArray *voiceArray;
+@property (nonatomic, strong) NSTimer *voiceObserver;
+@property (nonatomic, strong) NSMutableArray *voiceArray;
+@property (nonatomic, assign) NSInteger playIndex;
 
 @end
 
-@implementation EM_ChatMessageManager{
-    NSInteger playIndex;
-}
+@implementation EM_ChatMessageManager
 
 + (instancetype)defaultManager{
     @synchronized(self){
@@ -84,10 +85,10 @@ static EM_ChatMessageManager *detailInstance = nil;
     return [EMCDDeviceManager sharedInstance].isPlaying;
 }
 
-- (void)showBrowserWithImagesMessage:(NSArray *)imageMessageArray index:(NSInteger)index{
-    [_photoArray removeAllObjects];
-    for (int i = 0; i < imageMessageArray.count; i++) {
-        EM_ChatMessageModel *messageModel = imageMessageArray[i];
+- (void)showBrowserWithImagesMessage:(NSArray *)imageArray index:(NSInteger)index{
+    [self.photoArray removeAllObjects];
+    for (int i = 0; i < imageArray.count; i++) {
+        EM_ChatMessageModel *messageModel = imageArray[i];
         EMImageMessageBody *imageBody = (EMImageMessageBody *)messageModel.messageBody;
         
         MWPhoto *photo;
@@ -97,7 +98,7 @@ static EM_ChatMessageManager *detailInstance = nil;
             photo = [MWPhoto photoWithURL:[NSURL URLWithString:imageBody.remotePath]];
         }
         photo.caption = imageBody.displayName;
-        [_photoArray addObject:photo];
+        [self.photoArray addObject:photo];
     }
     [self.photoBrowser setCurrentPhotoIndex:index];
     UIViewController *rootController = [self.keyWindow rootViewController];
@@ -105,7 +106,7 @@ static EM_ChatMessageManager *detailInstance = nil;
 }
 
 - (void)showBrowserWithVideoMessage:(EM_ChatMessageModel *)videoMessage{
-    [_photoArray removeAllObjects];
+    [self.photoArray removeAllObjects];
     EMVideoMessageBody *videoBody = (EMVideoMessageBody *)videoMessage.messageBody;
     MWPhoto *video;
     if (videoMessage.sender) {
@@ -114,67 +115,64 @@ static EM_ChatMessageManager *detailInstance = nil;
         video = [MWPhoto videoWithURL:[NSURL URLWithString:videoBody.remotePath]];
     }
     video.caption = videoBody.displayName;
-    [_photoArray addObject:video];
+    [self.photoArray addObject:video];
     UIViewController *rootController = [self.keyWindow rootViewController];
     [rootController presentViewController:self.photoNavigationController animated:YES completion:nil];
 }
 
-- (void)playVoice:(NSArray *)voiceMessageArray index:(NSInteger)index{
-    if (index < 0 || index >= voiceMessageArray.count) {
-        return;
-    }
-    [self stopVoice];
-    [_voiceArray addObjectsFromArray:voiceMessageArray];
-    playIndex = index;
-    [self playNextVoice];
-    if (_delegate) {
-        [_delegate playStartWithMessage:_voiceArray[index]];
-    }
+- (void)playVoice:(NSArray *)voiceArray index:(NSInteger)index{    
+    self.playIndex = index;
+    [self.voiceArray addObjectsFromArray:voiceArray];
+    
+    self.voiceObserver =  [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(playNextVoice) userInfo:nil repeats:YES];
 }
 
 - (void)playNextVoice{
-    if (playIndex >= 0 && playIndex < _voiceArray.count) {
-        for (int i = 0; i < _voiceArray.count; i++) {
-            EM_ChatMessageModel *messageModel = _voiceArray[i];
-            messageModel.extend.checking = i == playIndex;
-        }
-        
-        __block EM_ChatMessageModel *messageModel = _voiceArray[playIndex];
-        EMVoiceMessageBody *messageBody = (EMVoiceMessageBody *)messageModel.messageBody;
-        
-        [[EMCDDeviceManager sharedInstance] asyncPlayingWithPath:messageBody.localPath completion:^(NSError *error) {
-            
-            messageModel.extend.checking = NO;
-            playIndex ++;
-            EM_ChatMessageModel *nextMessageModel;
-            
-            if (playIndex < _voiceArray.count && _voiceArray.count > 1) {
-                nextMessageModel = _voiceArray[playIndex];
-                if (nextMessageModel.sender) {
-                    playIndex ++;
-                    if (playIndex < _voiceArray.count) {
-                        nextMessageModel = _voiceArray[playIndex];
-                    }else{
-                        nextMessageModel = nil;
-                    }
-                }
-                if (nextMessageModel && !nextMessageModel.extend.details) {
-                    [self playNextVoice];
-                }
-            }
-            
-            if(_delegate){
-                [_delegate playCompletionWithMessage:messageModel nextMessage:nextMessageModel];
-            }
-        }];
+    EM_ChatMessageModel *per;
+    if (self.playIndex > 0 && self.playIndex <= self.voiceArray.count) {
+        per = self.voiceArray[self.playIndex - 1];
+        per.messageSign.checking = NO;
+        per.messageSign.details = YES;
     }
     
+    if (!self.isPlaying && self.playIndex < self.voiceArray.count) {
+        EM_ChatMessageModel *next = self.voiceArray[self.playIndex];
+        next.messageSign.checking = YES;
+        next.messageSign.details = YES;
+        
+        EMVoiceMessageBody *messageBody = (EMVoiceMessageBody *)next.messageBody;
+        
+        [[EMCDDeviceManager sharedInstance] asyncPlayingWithPath:messageBody.localPath completion:^(NSError *error) {
+            self.playIndex ++;
+        }];
+        
+        if (self.voiceArray.count > 0 && self.delegate && [self.delegate respondsToSelector:@selector(didStartPlayWithMessage:previous:)]) {
+            [self.delegate didStartPlayWithMessage:next previous:per];
+        }
+    }else{
+        if (self.playIndex >= self.voiceArray.count) {
+            if (self.voiceArray.count > 0 && self.delegate && [self.delegate respondsToSelector:@selector(didEndPlayWithMessage:)]) {
+                [self.delegate didEndPlayWithMessage:self.voiceArray.lastObject];
+            }
+            [self stopVoice];
+        }
+    }
 }
 
 - (void)stopVoice{
-    [_voiceArray removeAllObjects];
     if (self.isPlaying) {
         [[EMCDDeviceManager sharedInstance] stopPlaying];
+    }
+    
+    for (EM_ChatMessageModel *model in self.voiceArray) {
+        model.messageSign.checking = NO;
+    }
+    
+    [_voiceArray removeAllObjects];
+    self.playIndex = 0;
+    if (self.voiceObserver) {
+        [self.voiceObserver invalidate];
+        self.voiceObserver = nil;
     }
 }
 

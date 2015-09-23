@@ -6,15 +6,17 @@
 //  Copyright (c) 2015年 周玉震. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
-
 #import "EM+ChatUser.h"
 #import "EM+ChatBuddy.h"
 #import "EM+ChatGroup.h"
 #import "EM+ChatRoom.h"
+@class UIApplication;
+@class UILocalNotification;
+@class EM_ChatMessageModel;
 
 @protocol EM_ChatUserDelegate;
 @protocol EM_ChatOppositeDelegate;
+@protocol EM_ChatNotificationDelegate;
 
 extern NSString * const kEMNotificationCallActionIn;
 extern NSString * const kEMNotificationCallActionOut;
@@ -41,7 +43,10 @@ extern NSString * const kEMCallTypeVideo;
  */
 @property (nonatomic, weak) id<EM_ChatOppositeDelegate> oppositeDelegate;
 
-
+/**
+ *  通知代理
+ */
+@property (nonatomic, weak) id<EM_ChatNotificationDelegate> notificationDelegate;
 
 + (instancetype)sharedInstance;
 
@@ -49,28 +54,61 @@ extern NSString * const kEMCallTypeVideo;
 
 + (BOOL)canVideo;
 
-- (void)applicationDidEnterBackground:(UIApplication *)application;
+- (BOOL)registerExtendClass:(Class)cls;
+
+- (Class)classForExtendWithIdentifier:(NSString *)identifier;
+
+- (void)registerForRemoteNotificationsWithApplication:(UIApplication *)application;
+
+/**
+ *  应用启动完毕
+ *
+ *  @param application
+ *  @param launchOptions 
+ */
+- (void)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions;
+
+- (void)applicationProtectedDataWillBecomeUnavailable:(UIApplication *)application;
+
+- (void)applicationProtectedDataDidBecomeAvailable:(UIApplication *)application;
+
+- (void)applicationWillResignActive:(UIApplication *)application;
+
+- (void)applicationDidBecomeActive:(UIApplication *)application;
 
 - (void)applicationWillEnterForeground:(UIApplication *)application;
 
+- (void)applicationDidEnterBackground:(UIApplication *)application;
+
+- (void)applicationDidReceiveMemoryWarning:(UIApplication *)application;
+
 - (void)applicationWillTerminate:(UIApplication *)application;
+
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken;
+
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error;
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo;
+
+- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification;
 
 @end
 
 @protocol EM_ChatUserDelegate <NSObject>
 
-@required
-
-- (EM_ChatUser *)userForEMChat;
-
 @optional
+
+/**
+ * 返回当前登录的用户信息
+ *
+ */
+- (EM_ChatUser *)userForEMChat;
 
 @end
 
 @protocol EM_ChatOppositeDelegate <NSObject>
 
-@required
-
+@optional
 /**
  *  根据chatter返回好友信息
  *
@@ -118,6 +156,18 @@ extern NSString * const kEMCallTypeVideo;
  */
 - (EM_ChatBuddy *)buddyInfoWithChatter:(NSString *)chatter inRoom:(EM_ChatRoom *)room;
 
-@optional
+@end
+
+@protocol EM_ChatNotificationDelegate <NSObject>
+
+/**
+ *  本地消息通知显示内容
+ *  只有在消息有用户自己的自定义扩展的时候才会调用
+ *
+ *  @param message
+ *
+ *  @return 默认“发来一个新消息”，默认自动在前面加上消息发送者的显示名称
+ */
+- (NSString *)alertBodyWithMessage:(EM_ChatMessageModel *)message;
 
 @end

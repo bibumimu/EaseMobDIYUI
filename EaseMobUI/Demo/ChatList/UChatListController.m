@@ -24,10 +24,6 @@
     return self;
 }
 
-- (void)viewDidLoad {
-    [super viewDidLoad];
-}
-
 #pragma mark - EM_ChatListControllerDelegate
 - (void)didSelectedWithConversation:(EMConversation *)conversation{
     UChatController *chatController = [[UChatController alloc]initWithConversation:conversation];

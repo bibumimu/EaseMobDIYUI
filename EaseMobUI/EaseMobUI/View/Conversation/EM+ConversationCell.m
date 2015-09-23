@@ -44,14 +44,15 @@
         [self.contentView addSubview:_timeLabel];
         
         _unreadLabel = [[UILabel alloc]init];
-        _unreadLabel.textColor = [UIColor colorWithHexRGB:TEXT_NORMAL_COLOR];
+        _unreadLabel.textColor = [UIColor whiteColor];
+        _unreadLabel.textAlignment = NSTextAlignmentCenter;
+        _unreadLabel.backgroundColor = [UIColor redColor];
         _unreadLabel.font = [UIFont systemFontOfSize:12];
+        _unreadLabel.bounds = CGRectMake(0, 0, 14, 14);
+        _unreadLabel.layer.masksToBounds = YES;
+        _unreadLabel.layer.cornerRadius = _unreadLabel.bounds.size.height / 2;
         [self.contentView addSubview:_unreadLabel];
         
-        _unreadView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, 10, 10)];
-        _unreadView.layer.cornerRadius = _unreadView.frame.size.height / 2;
-        _unreadView.backgroundColor = [UIColor redColor];
-        [self.contentView addSubview:_unreadView];
         
         _topLineView = [[UIView alloc]init];
         _topLineView.backgroundColor = [UIColor colorWithHEX:LINE_COLOR alpha:1.0];
@@ -70,6 +71,7 @@
     
     [_timeLabel sizeToFit];
     _timeLabel.center = CGPointMake(size.width - RIGHT_PADDING -_timeLabel.frame.size.width / 2, self.topPadding + (size.height - self.topPadding - self.bottomPadding) / 4);
+    _unreadLabel.center = CGPointMake(_timeLabel.center.x, self.topPadding + (size.height - self.topPadding - self.bottomPadding) / 4 * 3);
     
     _avatarView.frame = CGRectMake(LEFT_PADDING, self.topPadding, size.height - self.topPadding - self.bottomPadding, size.height - self.topPadding - self.bottomPadding);
     _avatarView.layer.cornerRadius = _avatarView.frame.size.width / 2;
@@ -78,20 +80,10 @@
     CGFloat width = _timeLabel.frame.origin.x - COMMON_PADDING - x;
     CGFloat height = (size.height - self.topPadding - self.bottomPadding) / 2;
     _nameLabel.frame = CGRectMake(x, self.topPadding, width, height);
-    
-    if (_unreadLabel.hidden) {
-        _unreadLabel.frame = CGRectMake(x, size.height / 2, 0, height);
-    }else{
-        [_unreadLabel sizeToFit];
-        _unreadLabel.center = CGPointMake(x + _unreadLabel.bounds.size.width / 2, size.height / 2 + height / 2);
-    }
-    
-    _introLabel.frame = CGRectMake(x + _unreadLabel.frame.size.width, size.height / 2, width - _unreadLabel.frame.size.width, height);
-    _unreadView.center = CGPointMake(_avatarView.frame.origin.x + _avatarView.frame.size.width - _avatarView
-                                     .frame.size.width / 4, _avatarView.frame.origin.y + _avatarView.frame.size.height / 4);
+    _introLabel.frame = CGRectMake(x, size.height / 2, width - _unreadLabel.frame.size.width - 5, height);
     
     _topLineView.frame = CGRectMake(0, -LINE_HEIGHT, size.width, LINE_HEIGHT);
-    _bottomLineView.frame = CGRectMake(0, size.height - LINE_HEIGHT, size.width, LINE_HEIGHT);
+    _bottomLineView.frame = CGRectMake(_nameLabel.frame.origin.x, size.height - LINE_HEIGHT, size.width - _nameLabel.frame.origin.x, LINE_HEIGHT);
 }
 
 //左滑按钮

@@ -13,6 +13,7 @@
 #import "EM+ChatResourcesUtils.h"
 
 #import "EM+ChatMessageModel.h"
+#import "EM+ChatMessageExtend.h"
 
 #import "UIColor+Hex.h"
 #import "EM+Common.h"
@@ -39,11 +40,11 @@
 
 + (CGFloat)heightForCellWithMessage:(EM_ChatMessageModel *)message  maxWidth:(CGFloat)max indexPath:(NSIndexPath *)indexPath config:(EM_ChatMessageUIConfig *)config{
     CGFloat contentHeight = config.messageTopPadding;
-    if (message.extend.showTime) {
+    if (message.messageExtend.showTime) {
         contentHeight += config.messageTimeLabelHeight;
     }
     CGFloat maxBubbleWidth = [EM_ChatMessageCell cellBubbleMaxWidth:max config:config];
-    CGSize bubbleSize = [message bubbleSizeFormMaxWidth:maxBubbleWidth config:config];
+    CGSize bubbleSize = [EM_ChatMessageBubble sizeForBubbleWithMessage:message maxWidth:maxBubbleWidth config:config];
     
     CGFloat height = bubbleSize.height + ( message.message.messageType == eMessageTypeChat ? 0 : config.messageNameLabelHeight);
     if (height > config.messageAvatarSize) {
@@ -81,7 +82,7 @@
         [self.contentView addSubview:_tailView];
         
         _bubbleView = [[EM_ChatMessageBubble alloc]initWithBodyClass:bodyClass withExtendClass:extendClass];
-        _bubbleView.layer.cornerRadius = 4;
+        _bubbleView.layer.cornerRadius = 8;
         _bubbleView.layer.masksToBounds = YES;
         _bubbleView.bodyView.delegate = self;
         _bubbleView.extendView.delegate = self;
@@ -130,8 +131,7 @@
     CGFloat _bubbleViewOriginY = _nameLabel.frame.origin.y + _nameLabel.frame.size.height;
     
     
-    CGSize bubbleSize = [_message bubbleSizeFormMaxWidth:[EM_ChatMessageCell cellBubbleMaxWidth:
-                                                          size.width config:self.config] config:self.config];
+    CGSize bubbleSize = _message.bubbleSize;
     
     CGFloat centerX;
     
@@ -187,20 +187,20 @@
     
     if (_message.sender) {
         _nameLabel.textAlignment = NSTextAlignmentRight;
-        _bubbleView.backgroundView.backgroundColor = [UIColor colorWithHEX:@"#EED2EE" alpha:1.0];
+        _bubbleView.backgroundView.backgroundColor = [UIColor colorWithHexRGB:0xafa376];
         _tailView.text = kEMChatIconBubbleTailRight;
     }else{
         _nameLabel.textAlignment = NSTextAlignmentLeft;
-        _bubbleView.backgroundView.backgroundColor = [UIColor colorWithHEX:@"#B5B5B5" alpha:1.0];
+        _bubbleView.backgroundView.backgroundColor = [UIColor whiteColor];
         _tailView.text = kEMChatIconBubbleTailLeft;
     }
     [_tailView sizeToFit];
     _tailView.textColor = _bubbleView.backgroundView.backgroundColor;
-    _tailView.hidden = self.message.messageBody.messageBodyType == eMessageBodyType_Image;
+    _tailView.hidden = self.message.messageBody.messageBodyType == eMessageBodyType_Image || self.message.messageBody.messageBodyType == eMessageBodyType_Video;
     _bubbleView.message = _message;
     
     _timeLabel.text = [EM_ChatDateUtils stringFormatterMessageDateFromTimeInterval:message.message.timestamp / 1000];
-    _timeLabel.hidden = !_message.extend.showTime;
+    _timeLabel.hidden = !_message.messageExtend.showTime;
     
     if (_message.message.deliveryState == eMessageDeliveryState_Failure
         || _message.message.deliveryState == eMessageDeliveryState_Delivered) {

@@ -30,6 +30,7 @@
         _arrowLabel = [[UILabel alloc]init];
         _arrowLabel.font = [EM_ChatResourcesUtils iconFontWithSize:16];
         _arrowLabel.textColor = [UIColor blackColor];
+        _arrowLabel.text = KEMChatIconMorePlay;
         [self.contentView addSubview:_arrowLabel];
         
         _titleLabel = [[UILabel alloc]init];
@@ -86,6 +87,11 @@
 - (void)setArrow:(NSString *)arrow{
     _arrow = arrow;
     _arrowLabel.text = _arrow;
+}
+
+- (void)setAngle:(CGFloat)angle{
+    _angle = angle;
+    _arrowLabel.transform = CGAffineTransformMakeRotation(angle);
 }
 
 - (void)setTitle:(NSString *)title{

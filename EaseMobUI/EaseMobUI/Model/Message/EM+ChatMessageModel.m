@@ -7,6 +7,9 @@
 //
 
 #import "EM+ChatMessageModel.h"
+#import "EM+ChatMessageExtend.h"
+#import "EM+ChatMessageExtendBody.h"
+
 #import "EM+ChatMessageBodyView.h"
 #import "EM+ChatMessageTextBody.h"
 #import "EM+ChatMessageImageBody.h"
@@ -17,10 +20,9 @@
 
 #import "EM+ChatMessageUIConfig.h"
 
-@interface EM_ChatMessageModel()
+#import "EaseMobUIClient.h"
 
-@property (nonatomic, assign) CGSize bodySize;
-@property (nonatomic, assign) CGSize extendSize;
+@interface EM_ChatMessageModel()
 
 @end
 
@@ -30,57 +32,58 @@
     if (message) {
         EM_ChatMessageModel *model = [[EM_ChatMessageModel alloc]init];
         model.message = message;
-        
-        NSString *className = message.ext[kExtendAttributeKeyClassName];
-        if (className && className.length > 0) {
-            model.extend = [[NSClassFromString(className) alloc]initWithDictionary:model.message.ext error:nil];
+        model.messageExtend = [[EM_ChatMessageExtend alloc]initWithDictionary:message.ext error:nil];
+        NSDictionary *extendBody = message.ext[@"extendBody"];
+        NSString *identifier  = message.ext[kIdentifier];
+        Class cls = [[EaseMobUIClient sharedInstance] classForExtendWithIdentifier:identifier];
+        if (cls) {
+            model.messageExtend.extendBody = [[cls alloc]initWithDictionary:extendBody error:nil];
         }else{
-            model.extend = [[EM_ChatMessageExtend alloc]init];
+            model.messageExtend.extendBody = [[EM_ChatMessageExtendBody alloc]initWithDictionary:extendBody error:nil];
         }
-        model.extend.message = model;
         return model;
     }
     return nil;
 }
 
-+ (instancetype)fromText:(NSString *)text conversation:(EMConversation *)conversation extend:(EM_ChatMessageExtend *)extend{
++ (instancetype)fromText:(NSString *)text conversation:(EMConversation *)conversation{
     EMChatText *chatText = [[EMChatText alloc] initWithText:text];
     EMTextMessageBody *textBody = [[EMTextMessageBody alloc] initWithChatObject:chatText];
-    return [EM_ChatMessageModel fromBody:textBody conversation:conversation extend:extend];
+    return [EM_ChatMessageModel fromBody:textBody conversation:conversation];
 }
 
-+ (instancetype)fromVoice:(NSString *)path name:(NSString *)name duration:(NSInteger)duration conversation:(EMConversation *)conversation extend:(EM_ChatMessageExtend *)extend{
++ (instancetype)fromVoice:(NSString *)path name:(NSString *)name duration:(NSInteger)duration conversation:(EMConversation *)conversation{
     EMChatVoice *chatVoice = [[EMChatVoice alloc] initWithFile:path displayName:name];
     chatVoice.duration = duration;
     EMVoiceMessageBody *voiceBody = [[EMVoiceMessageBody alloc] initWithChatObject:chatVoice];
-    return [EM_ChatMessageModel fromBody:voiceBody conversation:conversation extend:extend];
+    return [EM_ChatMessageModel fromBody:voiceBody conversation:conversation];
 }
 
-+ (instancetype)fromImage:(UIImage *)image conversation:(EMConversation *)conversation extend:(EM_ChatMessageExtend *)extend{
++ (instancetype)fromImage:(UIImage *)image conversation:(EMConversation *)conversation{
     EMChatImage *chatImage = [[EMChatImage alloc] initWithUIImage:image displayName:[NSString stringWithFormat:@"%d%d%@",(int)[NSDate date].timeIntervalSince1970,arc4random() % 100000,@".jpg"]];
     EMImageMessageBody *imageBody = [[EMImageMessageBody alloc] initWithImage:chatImage thumbnailImage:nil];
-    return [EM_ChatMessageModel fromBody:imageBody conversation:conversation extend:extend];
+    return [EM_ChatMessageModel fromBody:imageBody conversation:conversation];
 }
 
-+ (instancetype)fromVideo:(NSString *)path conversation:(EMConversation *)conversation extend:(EM_ChatMessageExtend *)extend{
++ (instancetype)fromVideo:(NSString *)path conversation:(EMConversation *)conversation{
     EMChatVideo *chatVideo = [[EMChatVideo alloc] initWithFile:path displayName:[NSString stringWithFormat:@"%d%d%@",(int)[NSDate date].timeIntervalSince1970,arc4random() % 100000,@".mp4"]];
     EMVideoMessageBody *videoBody = [[EMVideoMessageBody alloc]initWithChatObject:chatVideo];
-    return [EM_ChatMessageModel fromBody:videoBody conversation:conversation extend:extend];
+    return [EM_ChatMessageModel fromBody:videoBody conversation:conversation];
 }
 
-+ (instancetype)fromLatitude:(double)latitude longitude:(double)longitude address:(NSString *)address conversation:(EMConversation *)conversation extend:(EM_ChatMessageExtend *)extend{
++ (instancetype)fromLatitude:(double)latitude longitude:(double)longitude address:(NSString *)address conversation:(EMConversation *)conversation{
     EMChatLocation *chatLocation = [[EMChatLocation alloc] initWithLatitude:latitude longitude:longitude address:address];
     EMLocationMessageBody *locationBody = [[EMLocationMessageBody alloc] initWithChatObject:chatLocation];
-    return [EM_ChatMessageModel fromBody:locationBody conversation:conversation extend:extend];
+    return [EM_ChatMessageModel fromBody:locationBody conversation:conversation];
 }
 
-+ (instancetype)fromFile:(NSString *)path name:(NSString *)name conversation:(EMConversation *)conversation extend:(EM_ChatMessageExtend *)extend{
++ (instancetype)fromFile:(NSString *)path name:(NSString *)name conversation:(EMConversation *)conversation{
     EMChatFile *chatFile = [[EMChatFile alloc]initWithFile:path displayName:name];
     EMFileMessageBody *fileBody = [[EMFileMessageBody alloc]initWithChatObject:chatFile];
-    return [EM_ChatMessageModel fromBody:fileBody conversation:conversation extend:extend];
+    return [EM_ChatMessageModel fromBody:fileBody conversation:conversation];
 }
 
-+ (instancetype)fromBody:(id<IEMMessageBody>)body conversation:(EMConversation *)conversation extend:(EM_ChatMessageExtend *)extend{
++ (instancetype)fromBody:(id<IEMMessageBody>)body conversation:(EMConversation *)conversation{
     EMMessage *retureMsg = [[EMMessage alloc]initWithReceiver:conversation.chatter bodies:[NSArray arrayWithObject:body]];
     switch (conversation.conversationType) {
         case eConversationTypeGroupChat:{
@@ -99,30 +102,15 @@
     
     EM_ChatMessageModel *model = [[EM_ChatMessageModel alloc]init];
     model.message = retureMsg;
-    if (extend) {
-        model.extend = extend;
-    }else{
-        model.extend = [[EM_ChatMessageExtend alloc]init];
-    }
-    model.extend.message = model;
-    
-    model.message.ext = [model.extend toDictionary];
     return model;
 }
 
 - (instancetype)init{
     self = [super init];
     if (self) {
+        self.messageExtend = [[EM_ChatMessageExtend alloc]init];
     }
     return self;
-}
-
-- (void)setMessage:(EMMessage *)message{
-    _message = message;
-}
-
-- (void)setExtend:(EM_ChatMessageExtend *)extend{
-    _extend = extend;
 }
 
 - (id<IEMMessageBody>)messageBody{
@@ -134,8 +122,8 @@
 
 - (BOOL)updateExt{
     BOOL update = YES;
-    if (self.extend) {
-        self.message.ext = [self.extend toDictionary];
+    if (self.messageExtend) {
+        self.message.ext = [self.messageExtend toDictionary];
         update = [self.message updateMessageExtToDB];
     }
     return update;
@@ -147,14 +135,14 @@
         [reuseIdentifier appendString:NSStringFromClass([self.messageBody class])];
     }
     
-    if (self.extend) {
-        [reuseIdentifier appendString:NSStringFromClass([self.extend class])];
+    if (self.messageExtend) {
+        [reuseIdentifier appendString:self.messageExtend.identifier];
     }
     
     return reuseIdentifier;
 }
 
-- (Class)classForBuildView{
+- (Class)classForBodyView{
     Class classForBuildView;
     switch (self.messageBody.messageBodyType) {
         case eMessageBodyType_Text:{
@@ -187,98 +175,6 @@
             break;
     }
     return classForBuildView;
-}
-
-- (CGSize)bubbleSizeFormMaxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config{
-    CGSize bodySize = [self bodySizeFormMaxWidth:maxWidth - config.bubblePadding * 2 config:config];
-    CGSize extendSize = [self extendSizeFormMaxWidth:maxWidth - config.bubblePadding * 2 config:config];
-    return CGSizeMake((bodySize.width > extendSize.width ? bodySize.width : extendSize.width) + config.bubblePadding * 2, bodySize.height + extendSize.height + 1 + config.bubblePadding * 2);
-}
-
-- (CGSize)bodySizeFormMaxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config{
-    if (CGSizeEqualToSize(self.bodySize, CGSizeZero)) {
-        
-        CGSize size;
-        
-        id<IEMMessageBody> messageBody = self.messageBody;
-        switch (messageBody.messageBodyType) {
-            case eMessageBodyType_Text:{
-                EMTextMessageBody *textBody = (EMTextMessageBody *)messageBody;
-                static float systemVersion;
-                static dispatch_once_t onceToken;
-                dispatch_once(&onceToken, ^{
-                    systemVersion = [[[UIDevice currentDevice] systemVersion] floatValue];
-                });
-                
-                NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
-                [paragraphStyle setLineSpacing:config.bubbleTextLineSpacing];
-                
-                size = [textBody.text boundingRectWithSize:CGSizeMake(maxWidth, 1000) options:NSStringDrawingUsesLineFragmentOrigin
-                                                attributes:@{
-                                                             NSFontAttributeName:[UIFont systemFontOfSize:config.bubbleTextFont + 1],
-                                                             NSParagraphStyleAttributeName:paragraphStyle
-                                                             }
-                                                   context:nil].size;
-                size.height += config.bodyTextPadding * 2;
-                size.width += config.bodyTextPadding * 2;
-            }
-                break;
-            case eMessageBodyType_Image:{
-                EMImageMessageBody *imageBody = (EMImageMessageBody *)messageBody;
-                size = imageBody.thumbnailSize;
-                size.height += config.bodyImagePadding * 2;
-                size.width += config.bodyImagePadding * 2;
-            }
-                break;
-            case eMessageBodyType_Video:{
-                EMVideoMessageBody *videoBody = (EMVideoMessageBody *)messageBody;
-                size = videoBody.size;
-                size.height += config.bodyVideoPadding * 2;
-                size.width += config.bodyVideoPadding * 2;
-            }
-                break;
-            case eMessageBodyType_Location:{
-                size = CGSizeMake(150, 150);
-                size.height += config.bodyLocationPadding * 2;
-                size.width += config.bodyLocationPadding * 2;
-            }
-                break;
-            case eMessageBodyType_Voice:{
-                EMVoiceMessageBody *voiceBody = (EMVoiceMessageBody *)messageBody;
-                size = CGSizeMake(voiceBody.duration * 4 + 44, 20);
-                size.height += config.bodyVoicePadding * 2;
-                size.width += config.bodyVoicePadding * 2;
-            }
-                break;
-            case eMessageBodyType_File:{
-                CGFloat width = maxWidth / 5 * 4;
-                size = CGSizeMake(width, width / 2);
-                size.height += config.bodyFilePadding * 2;
-                size.width += config.bodyFilePadding * 2;
-            }
-                break;
-            case eMessageBodyType_Command:{
-                size = CGSizeZero;
-            }
-                break;
-        }
-        self.bodySize = size;
-    }
-    
-    if (self.extend && !self.extend.showBody) {
-        return CGSizeZero;
-    }
-    return self.bodySize;
-}
-
-- (CGSize)extendSizeFormMaxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config{
-    if (CGSizeEqualToSize(self.extendSize, CGSizeZero) && self.extend) {
-        self.extendSize = [self.extend extendSizeFromMaxWidth:maxWidth];
-    }
-    if (self.extend && !self.extend.showExtend) {
-        return CGSizeZero;
-    }
-    return self.extendSize;
 }
 
 - (BOOL)isEqual:(id)object{

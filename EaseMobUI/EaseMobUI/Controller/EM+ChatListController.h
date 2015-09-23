@@ -12,12 +12,15 @@
 @class EM_ChatOpposite;
 @class EM_ConversationCell;
 
+@protocol EM_ChatListControllerDisplay;
 @protocol EM_ChatListControllerDataSource;
 @protocol EM_ChatListControllerDelegate;
 
 @interface EM_ChatListController : EM_ChatBaseController
 
-@property (nonatomic, weak) id<EM_ChatListControllerDataSource> dataSorce;
+@property (nonatomic, weak) id<EM_ChatListControllerDisplay> display;
+
+@property (nonatomic, weak) id<EM_ChatListControllerDataSource> dataSource;
 
 @property (nonatomic, weak) id<EM_ChatListControllerDelegate> delegate;
 
@@ -43,9 +46,29 @@
 
 @end
 
+@protocol EM_ChatListControllerDisplay <NSObject>
+
+@optional
+
+/**
+ *  会话显示的简短信息
+ *  如果是编辑状态则默认显示编辑内容，此时不会调用该代理;
+ *  如果是语音通讯或者视频通讯则默认显示通话结果，此时不会调用该代理;
+ *  如果返回nil或者未实现，则默认显示最新一条消息的内容
+ *  @param opposite 聊天对象，好友，群，聊天室
+ *  @param message  聊天的最新一条消息，有可能为空
+ */
+- (NSMutableAttributedString *)introForConversationWithOpposite:(EM_ChatOpposite *)opposite message:(EM_ChatMessageModel *)message;
+
+@end
+
 @protocol EM_ChatListControllerDataSource <NSObject>
 
 @required
+
+- (NSInteger)numberOfRows;
+
+- (EMConversation *)dataForRowAtIndex:(NSInteger)index;
 
 @optional
 
@@ -73,21 +96,18 @@
 - (CGFloat)heightForConversationRow;
 
 /**
- *  会话显示的简短信息
- *  如果是编辑状态则默认显示编辑内容，此时不会调用该代理;
- *  如果是语音通讯或者视频通讯则默认显示通话结果，此时不会调用该代理;
- *  如果返回nil或者未实现，则默认显示最新一条消息的内容
- *  @param opposite 聊天对象，好友，群，聊天室
- *  @param message  聊天的最新一条消息，有可能为空
- */
-- (NSMutableAttributedString *)introForConversationWithOpposite:(EM_ChatOpposite *)opposite message:(EM_ChatMessageModel *)message;
-
-/**
  *  选中某一会话
  *
  *  @param conversation
  */
 - (void)didSelectedWithConversation:(EMConversation *)conversation;
+
+/**
+ *  删除某一会话
+ *  只有在设置了dataSource才会调用
+ *  @param conversation 
+ */
+- (void)didDeletedWithConversation:(EMConversation *)conversation;
 
 /**
  *  开始下拉刷新

@@ -26,32 +26,44 @@
 UITableViewDelegate,
 UISearchDisplayDelegate,
 EM_ChatTableViewTapDelegate,
+EMChatManagerDelegate,
 UICollectionViewDataSource,
 UICollectionViewDelegate,
 UICollectionViewDelegateFlowLayout>
 
+@property (nonatomic, strong) UISearchDisplayController *searchController;
+@property (nonatomic, strong) EM_ChatOppositeTagBar *tableHeader;
+@property (nonatomic, strong) EM_ChatTableView *tableView;
+
+@property (nonatomic, strong) NSArray *tagArray;
+@property (nonatomic, strong) NSMutableArray *buddyArray;
+@property (nonatomic, strong) NSMutableArray *searchArray;
+@property (nonatomic, assign) BOOL needReload;
+
 @end
 
-@implementation EM_BuddyListController{
-    UISearchDisplayController *_searchController;
-    
-    EM_ChatTableView *_tableView;
-    EM_ChatOppositeTagBar *_tableHeader;
-    
-    NSMutableDictionary *_expandSign;
-}
+@implementation EM_BuddyListController
 
 - (instancetype)init{
     self = [super init];
     if (self) {
         self.title = [EM_ChatResourcesUtils stringWithName:@"common.contact"];
-        _expandSign = [[NSMutableDictionary alloc]init];
+        self.buddyArray = [[NSMutableArray alloc]init];
+        self.searchArray = [[NSMutableArray alloc]init];
     }
     return self;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    if (!self.dataSource || ![self.dataSource respondsToSelector:@selector(numberOfTags)]) {
+        _tagArray = @[@{@"title":[EM_ChatResourcesUtils stringWithName:@"buddy.new"],@"icon":kEMChatIconBuddyNew},
+                      @{@"title":[EM_ChatResourcesUtils stringWithName:@"buddy.group"],@"icon":kEMChatIconBuddyGroup},
+                      @{@"title":[EM_ChatResourcesUtils stringWithName:@"buddy.room"],@"icon":kEMChatIconBuddyRoom},
+                      @{@"title":[EM_ChatResourcesUtils stringWithName:@"buddy.blacklist"],@"icon":kEMChatIconBuddyBlacklist}];
+    }
+    
     _tableView = [[EM_ChatTableView alloc]initWithFrame:self.view.frame];
     _tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     _tableView.dataSource = self;
@@ -60,7 +72,7 @@ UICollectionViewDelegateFlowLayout>
     _tableView.contentInset = UIEdgeInsetsMake(self.offestY > 0 ? self.offestY : 0, 0, 0, 0);
     _tableView.tapDelegate = self;
     
-    MJRefreshGifHeader *header = [MJRefreshGifHeader headerWithRefreshingTarget:self refreshingAction:@selector(pulldownLoad)];
+    MJRefreshGifHeader *header = [MJRefreshGifHeader headerWithRefreshingTarget:self refreshingAction:@selector(didBeginRefresh)];
     _tableView.header = header;
     
     [self.view addSubview:_tableView];
@@ -74,6 +86,19 @@ UICollectionViewDelegateFlowLayout>
     _searchController.searchResultsDataSource = self;
     _searchController.searchResultsDelegate = self;
     _searchController.searchResultsTableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    if (!self.dataSource) {
+        [[EaseMob sharedInstance].chatManager removeDelegate:self];
+        [[EaseMob sharedInstance].chatManager addDelegate:self delegateQueue:nil];
+        [[EaseMob sharedInstance].chatManager asyncFetchBuddyList];
+    }
+}
+
+- (void)viewDidAppear:(BOOL)animated{
+    [super viewDidAppear:animated];
+    if (self.needReload) {
+        [self reloadOppositeList];
+    }
+    self.needReload = NO;
 }
 
 - (void)viewWillDisappear:(BOOL)animated{
@@ -81,13 +106,9 @@ UICollectionViewDelegateFlowLayout>
     [_searchController setActive:NO];
 }
 
-- (void)pulldownLoad{
-    [_tableView.header endRefreshing];
-}
-
 - (void)reloadTagBar{
     CGFloat height =0;
-    BOOL showSearchBar = NO;
+    BOOL showSearchBar = YES;
     if (self.dataSource && [self.dataSource respondsToSelector:@selector(shouldShowSearchBar)]) {
         showSearchBar = [self.dataSource shouldShowSearchBar];
     }
@@ -96,7 +117,7 @@ UICollectionViewDelegateFlowLayout>
         height += HEIGH_FOR_SEARCH_BAR;
     }
     
-    BOOL showTagBar = NO;
+    BOOL showTagBar = YES;
     if (self.dataSource && [self.dataSource respondsToSelector:@selector(shouldShowTagBar)]) {
         showTagBar = [self.dataSource shouldShowTagBar];
     }
@@ -109,35 +130,28 @@ UICollectionViewDelegateFlowLayout>
         _tableHeader.collectionView.dataSource = nil;
         _tableHeader.collectionView.delegate = nil;
     }
+    
+    _tableHeader.searchBar.hidden = !showSearchBar;
+    _tableHeader.collectionView.hidden = !showTagBar;
     _tableHeader.frame = CGRectMake(0, 0, self.view.frame.size.width, height);
     [_tableHeader.collectionView reloadData];
     [_tableView reloadData];
 }
 
 - (void)reloadOppositeList{
-    [_tableView reloadData];
+    [self.tableView reloadData];
 }
 
-- (void)reloadOppositeGroup:(NSInteger)index isExpand:(BOOL)expand{
-    if (self.dataSource && [self.dataSource respondsToSelector:@selector(numberOfGroups)]) {
-        NSInteger groupCount = [self.dataSource numberOfGroups];
-        if (index >= 0 && index < groupCount) {
-            if (expand) {
-                [_tableView reloadSections:[NSIndexSet indexSetWithIndex:index] withRowAnimation:UITableViewRowAnimationBottom];
-            }else{
-                [_tableView reloadSections:[NSIndexSet indexSetWithIndex:index] withRowAnimation:UITableViewRowAnimationTop];
-            }
-            
-        }
-    }
+- (void)reloadOppositeGroupWithIndex:(NSInteger)index{
+    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:index] withRowAnimation:UITableViewRowAnimationAutomatic];
 }
 
 - (void)startRefresh{
-    [_tableView.header beginRefreshing];
+    [self.tableView.header beginRefreshing];
 }
 
 - (void)endRefresh{
-    [_tableView.header endRefreshing];
+    [self.tableView.header endRefreshing];
     if (self.delegate && [self.delegate respondsToSelector:@selector(didEndRefresh)]) {
         [self.delegate didEndRefresh];
     }
@@ -146,23 +160,36 @@ UICollectionViewDelegateFlowLayout>
 - (void)didBeginRefresh{
     if (self.delegate && [self.delegate respondsToSelector:@selector(didStartRefresh)]) {
         [self.delegate didStartRefresh];
+    }else{
+        //刷新数据
+        [self endRefresh];
+        [self reloadOppositeList];
     }
-    //刷新数据
-    [self reloadOppositeList];
-    [self endRefresh];
 }
 
 #pragma mark - UISearchDisplayDelegate
 - (void)searchDisplayControllerDidEndSearch:(UISearchDisplayController *)controller{
     [controller.searchBar removeFromSuperview];
     controller.searchBar.frame = CGRectMake(0, 0, _tableHeader.frame.size.width, IS_PAD ? 60 : 44);
-    [_tableHeader addSubview:controller.searchBar];
+    [self.tableHeader addSubview:controller.searchBar];
 }
 
 - (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString{
-    BOOL reload = NO;
-    if (self.delegate && [self.delegate respondsToSelector:@selector(shouldReloadSearchForSearchString:)]) {
+    BOOL reload = YES;
+    if (self.dataSource && self.delegate && [self.delegate respondsToSelector:@selector(shouldReloadSearchForSearchString:)]) {
         reload = [self.delegate shouldReloadSearchForSearchString:searchString];
+    }else{
+        [self.searchArray removeAllObjects];
+        for (EM_ChatBuddy *buddy in self.buddyArray) {
+            if ([buddy.displayName containsString:searchString]) {
+                [self.searchArray addObject:buddy];
+                continue;
+            }
+            if ([buddy.remarkName containsString:searchString]){
+                [self.searchArray addObject:buddy];
+                continue;
+            }
+        }
     }
     return reload;
 }
@@ -172,6 +199,8 @@ UICollectionViewDelegateFlowLayout>
     NSInteger count = 0;
     if (self.dataSource && [self.dataSource respondsToSelector:@selector(numberOfTags)]) {
         count = [self.dataSource numberOfTags];
+    }else{
+        count = self.tagArray.count;
     }
     return count;
 }
@@ -182,6 +211,8 @@ UICollectionViewDelegateFlowLayout>
     NSString *title = nil;
     if (self.dataSource && [self.dataSource respondsToSelector:@selector(titleForTagAtIndex:)]) {
         title = [self.dataSource titleForTagAtIndex:indexPath.row];
+    }else{
+        title = self.tagArray[indexPath.row][@"title"];
     }
     
     cell.title = title;
@@ -189,17 +220,29 @@ UICollectionViewDelegateFlowLayout>
     UIFont *font = nil;
     if (self.dataSource && [self.dataSource respondsToSelector:@selector(fontForTagAtIndex:)]) {
         font = [self.dataSource fontForTagAtIndex:indexPath.row];
+    }else{
+        font = [EM_ChatResourcesUtils iconFontWithSize:30];
     }
     
     NSString *icon = nil;
     if (self.dataSource && [self.dataSource respondsToSelector:@selector(iconForTagAtIndex:)]) {
         icon = [self.dataSource iconForTagAtIndex:indexPath.row];
+    }else{
+        icon = _tagArray[indexPath.row][@"icon"];
     }
     
     if (font && icon) {
         cell.font = font;
         cell.icon = icon;
     }
+    
+    NSInteger badge = 0;
+    if (self.dataSource && [self.dataSource respondsToSelector:@selector(badgeForTagAtIndex:)]) {
+        badge = [self.dataSource badgeForTagAtIndex:indexPath.row];
+    }else{
+        
+    }
+    cell.badge = badge;
     
     return cell;
 }
@@ -220,9 +263,10 @@ UICollectionViewDelegateFlowLayout>
         }
     }
 
-    
     if (self.delegate && [self.delegate respondsToSelector:@selector(didSelectedForTagAtIndex:)]) {
         [self.delegate didSelectedForTagAtIndex:indexPath.row];
+    }else{
+        
     }
 }
 
@@ -231,6 +275,8 @@ UICollectionViewDelegateFlowLayout>
     NSInteger count = 0;
     if (self.dataSource && [self.dataSource respondsToSelector:@selector(numberOfTags)]) {
         count = [self.dataSource numberOfTags];
+    }else{
+        count = self.tagArray.count;
     }
     
     CGSize size = CGSizeZero;
@@ -276,27 +322,27 @@ UICollectionViewDelegateFlowLayout>
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    NSInteger rowCount = 0;
     if (tableView == _tableView) {
-        
-        NSInteger rowCount = 0;
         BOOL expand = YES;
-        if (tableView.numberOfSections > 1 && self.dataSource && [self.dataSource respondsToSelector:@selector(shouldExpandForGroupAtIndex:)]) {
+        if (self.dataSource && [self.dataSource respondsToSelector:@selector(shouldExpandForGroupAtIndex:)]) {
             expand = [self.dataSource shouldExpandForGroupAtIndex:section];
         }
         if (expand) {
             if (self.dataSource && [self.dataSource respondsToSelector:@selector(numberOfRowsAtGroupIndex:)]) {
                 rowCount = [self.dataSource numberOfRowsAtGroupIndex:section];
+            }else{
+                rowCount = self.buddyArray.count;
             }
         }
-        return rowCount;
     }else if(tableView == _searchController.searchResultsTableView){
         if (self.dataSource && [self.dataSource respondsToSelector:@selector(numberOfRowsForSearch)]) {
-            return [self.dataSource numberOfRowsForSearch];
+            rowCount = [self.dataSource numberOfRowsForSearch];
+        }else{
+            rowCount = self.searchArray.count;
         }
-        return 0;
-    }else{
-        return 0;
     }
+    return rowCount;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
@@ -308,14 +354,18 @@ UICollectionViewDelegateFlowLayout>
     cell.indexPath = indexPath;
     cell.hiddenTopLine = indexPath.row == 0;
     cell.hiddenBottomLine = YES;
-    EM_ChatOpposite *opposite = nil;
+    EM_ChatOpposite *opposite;
     if (tableView == _tableView) {
         if (self.dataSource && [self.dataSource respondsToSelector:@selector(dataForRow:groupIndex:)]) {
             opposite = [self.dataSource dataForRow:indexPath.row groupIndex:indexPath.section];
+        }else{
+            opposite = self.buddyArray[indexPath.row];
         }
     }else if(tableView == _searchController.searchResultsTableView){
         if (self.dataSource && [self.dataSource respondsToSelector:@selector(dataForSearchRowAtIndex:)]) {
             opposite = [self.dataSource dataForSearchRowAtIndex:indexPath.row];
+        }else{
+            opposite = self.searchArray[indexPath.row];
         }
     }
     if (opposite) {
@@ -332,80 +382,123 @@ UICollectionViewDelegateFlowLayout>
 
 #pragma mark - UITableViewDelegate
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
-    if ([tableView numberOfSections] > 1 && tableView == _tableView) {
+    if (tableView == _tableView) {
         return 40;
     }
     return 0;
 }
+
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section{
-    NSInteger groupCount = [tableView numberOfSections];
-    if (groupCount > 1) {
-        if (tableView == _tableView) {
-            static NSString *headerIdentifier = @"headerIdentifier";
-            EM_ChatOppositeHeader *header = [tableView dequeueReusableHeaderFooterViewWithIdentifier:headerIdentifier];
-            if (!header) {
-                header = [[EM_ChatOppositeHeader alloc]initWithReuseIdentifier:headerIdentifier];
-                
-                BOOL expand = YES;
-                if (self.dataSource && [self.dataSource respondsToSelector:@selector(shouldExpandForGroupAtIndex:)]) {
-                    expand = [self.dataSource shouldExpandForGroupAtIndex:section];
+    if (tableView == _tableView) {
+        static NSString *headerIdentifier = @"headerIdentifier";
+        EM_ChatOppositeHeader *header = [tableView dequeueReusableHeaderFooterViewWithIdentifier:headerIdentifier];
+        if (!header) {
+            header = [[EM_ChatOppositeHeader alloc]initWithReuseIdentifier:headerIdentifier];
+            [header setChatOppositeHeaderClickedBlock:^(NSInteger s) {
+                if (self.dataSource && self.delegate && [self.delegate respondsToSelector:@selector(didSelectedForGroupAtIndex:)]) {
+                    [self.delegate didSelectedForGroupAtIndex:s];
                 }
-                
-                if (expand) {
-                    header.arrow = kEMChatIconBuddyStretch;
-                }else{
-                    header.arrow = kEMChatIconBuddyShrink;
+            }];
+            
+            [header setChatOppositeHeaderManageBlock:^(NSInteger section) {
+                if (self.dataSource && self.delegate && [self.delegate respondsToSelector:@selector(didSelectedForGroupManageAtIndex:)]) {
+                    [self.delegate didSelectedForGroupManageAtIndex:section];
                 }
-                
-                NSInteger rowCount = 0;
-                if (self.dataSource && [self.dataSource respondsToSelector:@selector(numberOfRowsAtGroupIndex:)]) {
-                    rowCount = [self.dataSource numberOfRowsAtGroupIndex:section];
-                }
-                header.buddyCount = rowCount;
-                
-                [header setChatOppositeHeaderClickedBlock:^(NSInteger s) {
-                    if (self.delegate && [self.delegate respondsToSelector:@selector(didSelectedForGroupAtIndex:)]) {
-                        [self.delegate didSelectedForGroupAtIndex:s];
-                    }
-                }];
-                
-                [header setChatOppositeHeaderManageBlock:^(NSInteger section) {
-                    if (self.delegate && [self.delegate respondsToSelector:@selector(didSelectedForGroupManageAtIndex:)]) {
-                        [self.delegate didSelectedForGroupManageAtIndex:section];
-                    }
-                }];
-                
-                if (self.dataSource && [self.dataSource respondsToSelector:@selector(shouldShowGroupManage)]) {
-                    header.needManage = [self.dataSource shouldShowGroupManage];
-                }
+            }];
+            
+            if (self.dataSource && self.dataSource && [self.dataSource respondsToSelector:@selector(shouldShowGroupManage)]) {
+                header.needManage = [self.dataSource shouldShowGroupManage];
             }
-            NSString *title;
-            if (self.dataSource && [self.dataSource respondsToSelector:@selector(titleForGroupAtIndex:)]) {
-                title = [self.dataSource titleForGroupAtIndex:section];
-            }else{
-                title = [NSString stringWithFormat:@"%@%ld",[EM_ChatResourcesUtils stringWithName:@"common.group_name"],section + 1];
-            }
-            header.title = title;
-            header.section = section;
-            return header;
-        }else{
-            return nil;
         }
+        
+        BOOL expand = YES;
+        if (self.dataSource && [self.dataSource respondsToSelector:@selector(shouldExpandForGroupAtIndex:)]) {
+            expand = [self.dataSource shouldExpandForGroupAtIndex:section];
+        }
+        
+        if (expand) {
+            header.angle = 90 * M_PI / 180.0;
+        }else{
+            header.angle = 0;
+        }
+        
+        NSInteger rowCount = 0;
+        if (self.dataSource && [self.dataSource respondsToSelector:@selector(numberOfRowsAtGroupIndex:)]) {
+            rowCount = [self.dataSource numberOfRowsAtGroupIndex:section];
+        }else{
+            rowCount = self.buddyArray.count;
+        }
+        header.buddyCount = rowCount;
+        
+        NSString *title;
+        if (self.dataSource && [self.dataSource respondsToSelector:@selector(titleForGroupAtIndex:)]) {
+            title = [self.dataSource titleForGroupAtIndex:section];
+        }else{
+            title = [NSString stringWithFormat:@"%@%ld",[EM_ChatResourcesUtils stringWithName:@"common.group_name"],section + 1];
+        }
+        header.title = title;
+        header.section = section;
+        return header;
     }else{
         return nil;
     }
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    EM_ChatOpposite *opposite;
     if (tableView == _tableView) {
-        if (self.delegate && [self.delegate respondsToSelector:@selector(didSelectedForRowAtIndex:groupIndex:)]) {
-            [self.delegate didSelectedForRowAtIndex:indexPath.row groupIndex:indexPath.section];
+        if (self.dataSource && [self.dataSource respondsToSelector:@selector(dataForRow:groupIndex:)]) {
+            opposite = [self.dataSource dataForRow:indexPath.section groupIndex:indexPath.row];
+        }else{
+            if (indexPath.row < self.buddyArray.count) {
+                opposite = self.buddyArray[indexPath.row];
+            }
         }
     }else if(tableView == _searchController.searchResultsTableView){
-        if (self.delegate && [self.delegate respondsToSelector:@selector(didSelectedForSearchRowAtIndex:)]) {
-            [self.delegate didSelectedForSearchRowAtIndex:indexPath.row];
+        if (self.dataSource && [self.dataSource respondsToSelector:@selector(dataForSearchRowAtIndex:)]) {
+            opposite = [self.dataSource dataForSearchRowAtIndex:indexPath.row];
+        }else{
+            if (indexPath.row < self.searchArray.count) {
+                opposite = self.searchArray[indexPath.row];
+            }
         }
     }
+    if (opposite) {
+        if (self.delegate && [self.delegate respondsToSelector:@selector(didSelectedWithOpposite:)]) {
+            [self.delegate didSelectedWithOpposite:opposite];
+        }else{
+            EM_ChatController *chatController = [[EM_ChatController alloc]initWithOpposite:opposite];
+            [self.navigationController pushViewController:chatController animated:YES];
+        }
+    }
+}
+
+#pragma mark - EMChatManagerBuddyDelegate
+- (void)didFetchedBuddyList:(NSArray *)buddyList error:(EMError *)error{
+    [self.buddyArray removeAllObjects];
+    for (int i = 0;i < buddyList.count;i++) {
+        EMBuddy *emBuddy = buddyList[i];
+        EM_ChatBuddy *buddy = [[EM_ChatBuddy alloc]init];
+        buddy.uid = emBuddy.username;
+        buddy.nickName = emBuddy.username;
+        buddy.remarkName = emBuddy.username;
+        buddy.displayName = buddy.remarkName;
+        [self.buddyArray addObject:buddy];
+    }
+    
+    if (self.isShow) {
+        [self reloadOppositeList];
+    }else{
+        self.needReload = YES;
+    }
+}
+
+- (void)didUpdateBuddyList:(NSArray *)buddyList changedBuddies:(NSArray *)changedBuddies isAdd:(BOOL)isAdd{
+    
+}
+
+- (void)didRemovedByBuddy:(NSString *)username{
+    
 }
 
 @end

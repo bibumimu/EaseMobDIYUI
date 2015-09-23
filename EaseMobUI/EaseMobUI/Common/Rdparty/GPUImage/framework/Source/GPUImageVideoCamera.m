@@ -869,7 +869,10 @@ NSString *const kGPUImageYUVVideoRangeConversionForLAFragmentShaderString = SHAD
                 totalFrameTimeDuringCapture += currentFrameTime;
             }
         }
-    }  
+    }
+    if (self.delegate && [self.delegate respondsToSelector:@selector(didOutputSampleBuffer:)]) {
+        [self.delegate didOutputSampleBuffer:sampleBuffer];
+    }
 }
 
 - (void)processAudioSampleBuffer:(CMSampleBufferRef)sampleBuffer;
@@ -955,7 +958,7 @@ NSString *const kGPUImageYUVVideoRangeConversionForLAFragmentShaderString = SHAD
         CFRetain(sampleBuffer);
         runAsynchronouslyOnVideoProcessingQueue(^{
             //Feature Detection Hook.
-            if (self.delegate)
+            if (self.delegate && [self.delegate respondsToSelector:@selector(willOutputSampleBuffer:)])
             {
                 [self.delegate willOutputSampleBuffer:sampleBuffer];
             }

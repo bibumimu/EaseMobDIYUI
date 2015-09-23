@@ -12,6 +12,8 @@ typedef void (^EM_ChatActionBlcok)(NSString * actionName,UIView * view);
 
 @interface EM_ChatActionButton : UIView
 
+@property (nonatomic, assign, readonly) CGFloat titleHeight;
+
 - (instancetype)initWithConfig:(NSDictionary *)config;
 
 - (void)setEM_ChatActionBlcok:(EM_ChatActionBlcok )block;

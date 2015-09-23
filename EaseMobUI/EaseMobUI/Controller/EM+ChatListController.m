@@ -13,27 +13,31 @@
 #import "EM+ConversationCell.h"
 
 #import "EM+ChatMessageModel.h"
+#import "EM+ChatMessageExtend.h"
+#import "EM+ChatMessageExtendCall.h"
 #import "EM_ChatConversation.h"
 
-#import "EaseMobUIClient.h"
 #import "EM+Common.h"
+#import "EaseMobUIClient.h"
 #import "EM+ChatResourcesUtils.h"
 #import "EM+ChatDateUtils.h"
 #import "EM+ChatDBUtils.h"
+#import "RealtimeSearchUtil.h"
 
 #import <MJRefresh/MJRefresh.h>
 #import <SDWebImage/UIButton+WebCache.h>
 
 @interface EM_ChatListController ()<UITableViewDataSource,UITableViewDelegate,UISearchDisplayDelegate,EMChatManagerDelegate,EM_ChatTableViewTapDelegate,SWTableViewCellDelegate>
 
+@property (nonatomic, strong) EM_ChatTableView *tableView;
+
+@property (nonatomic, strong) NSMutableArray *searchResultArray;
+@property (nonatomic, strong) NSArray *dataConversations;
 @property (nonatomic, assign) BOOL needReload;
 
 @end
 
-@implementation EM_ChatListController{
-    EM_ChatTableView *_tableView;
-    NSMutableArray *_searchResultArray;
-}
+@implementation EM_ChatListController
 
 - (instancetype)init{
     self = [super init];
@@ -84,7 +88,9 @@
     [[EaseMob sharedInstance].chatManager removeDelegate:self];
     [[EaseMob sharedInstance].chatManager addDelegate:self delegateQueue:nil];
     
-    [[EaseMob sharedInstance].chatManager loadAllConversationsFromDatabaseWithAppend2Chat:YES];
+    if (!self.dataSource) {
+        self.needReload = YES;
+    }
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didChatEditorChanged) name:kEMNotificationEditorChanged object:nil];
 }
@@ -92,7 +98,7 @@
 - (void)viewDidAppear:(BOOL)animated{
     [super viewDidAppear:animated];
     if (self.needReload) {
-        [_tableView reloadData];
+        [self reloadData];
         self.needReload = NO;
     }
 }
@@ -110,20 +116,18 @@
 }
 
 - (void)didEndCall:(NSNotification *)notification{
-    NSString *chattar = notification.userInfo[kEMCallChatter];
-    NSArray *conversations = [EaseMob sharedInstance].chatManager.conversations;
-    for (int i = 0; i < conversations.count; i++) {
-        EMConversation *conversation = conversations[i];
-        if ([conversation.chatter isEqualToString:chattar]) {
-            [_tableView reloadData];
-            break;
-        }
+    if (self.isShow) {
+        [_tableView reloadData];
+    }else{
+        self.needReload = YES;
     }
 }
 
 - (void)reloadData{
     //刷新数据
-    if ([EaseMob sharedInstance].chatManager.isLoggedIn) {
+    if (self.dataSource) {
+        [_tableView reloadData];
+    }else{
         [[EaseMob sharedInstance].chatManager loadAllConversationsFromDatabaseWithAppend2Chat:YES];
     }
 }
@@ -133,8 +137,6 @@
 }
 
 - (void)endRefresh{
-    //刷新数据并结束刷新
-    [self reloadData];
     [_tableView.header endRefreshing];
     if (self.delegate && [self.delegate respondsToSelector:@selector(didEndRefresh)]) {
         [self.delegate didEndRefresh];
@@ -146,7 +148,7 @@
     if (self.delegate && [self.delegate respondsToSelector:@selector(didStartRefresh)]) {
         [self.delegate didStartRefresh];
     }else{
-        [self endRefresh];
+        [self reloadData];
     }
 }
 
@@ -154,8 +156,15 @@
 - (void)swipeableTableViewCell:(SWTableViewCell *)cell didTriggerRightUtilityButtonWithIndex:(NSInteger)index{
     NSIndexPath *indexPath = [_tableView indexPathForCell:cell];
     if (index == 0) {
-        EMConversation *conversation = [EaseMob sharedInstance].chatManager.conversations[indexPath.row];
-        [[EaseMob sharedInstance].chatManager removeConversationByChatter:conversation.chatter deleteMessages:NO append2Chat:YES];
+        if (self.dataSource) {
+            EMConversation *conversation = [self.dataSource dataForRowAtIndex:indexPath.row];
+            if (self.delegate && [self.delegate respondsToSelector:@selector(didDeletedWithConversation:)]) {
+                [self.delegate didDeletedWithConversation:conversation];
+            }
+        }else{
+            EMConversation *conversation = _dataConversations[indexPath.row];
+            [[EaseMob sharedInstance].chatManager removeConversationByChatter:conversation.chatter deleteMessages:NO append2Chat:YES];
+        }
     }
 }
 
@@ -166,23 +175,11 @@
     }
     [_searchResultArray removeAllObjects];
     
-    NSArray *search = [[EaseMob sharedInstance].chatManager searchMessagesWithCriteria:searchString];
-    for (EMMessage *message in search) {
-        EMMessageType messageType = message.messageType;
-        EMConversationType conversationType;
-        if (messageType == eMessageTypeGroupChat) {
-            conversationType = eConversationTypeGroupChat;
-        }else if (messageType == eMessageTypeChatRoom){
-            conversationType = eConversationTypeChatRoom;
-        }else{
-            conversationType = eConversationTypeChat;
-        }
-        
-        EMConversation *conversation = [[EaseMob sharedInstance].chatManager conversationForChatter:message.conversationChatter conversationType:conversationType];
-        if (![_searchResultArray containsObject:conversation]) {
-            [_searchResultArray addObject:conversation];
-        }
-    }
+    [[RealtimeSearchUtil currentUtil] realtimeSearchWithSource:[EaseMob sharedInstance].chatManager.conversations searchText:searchString collationStringSelector:nil resultBlock:^(NSArray *results) {
+        MAIN(^{
+            [_searchResultArray addObjectsFromArray:results];
+        });
+    }];
     return YES;
 }
 
@@ -196,7 +193,11 @@
 #pragma mark - UITableViewDataSource
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
     if (tableView == _tableView) {
-        return [EaseMob sharedInstance].chatManager.conversations.count;
+        if (self.dataSource) {
+            return [self.dataSource numberOfRows];
+        }else{
+            return _dataConversations.count;
+        }
     }else{
         return _searchResultArray.count;
     }
@@ -207,7 +208,11 @@
     
     EMConversation *conversation;
     if (tableView == _tableView) {
-        conversation = [EaseMob sharedInstance].chatManager.conversations[indexPath.row];
+        if (self.dataSource) {
+            conversation = [self.dataSource dataForRowAtIndex:indexPath.row];;
+        }else{
+            conversation = _dataConversations[indexPath.row];
+        }
     }else{
         conversation = _searchResultArray[indexPath.row];
     }
@@ -221,7 +226,11 @@
     cell.delegate = self;
     
     if (tableView == _tableView) {
-        cell.topLineView.hidden = indexPath.row != [EaseMob sharedInstance].chatManager.conversations.count - 1;
+        if (self.dataSource) {
+            cell.topLineView.hidden = indexPath.row != [self.dataSource numberOfRows] - 1;
+        }else{
+            cell.topLineView.hidden = indexPath.row != _dataConversations.count - 1;
+        }
     }else{
         cell.topLineView.hidden = indexPath.row != _searchResultArray.count - 1;
     }
@@ -260,9 +269,8 @@
     }
     
     NSInteger unreadCount = conversation.unreadMessagesCount;
-    cell.unreadView.hidden = unreadCount == 0;
     cell.unreadLabel.hidden = unreadCount == 0;
-    cell.unreadLabel.text = [NSString stringWithFormat:@"[%ld%@]",unreadCount,[EM_ChatResourcesUtils stringWithName:@"common.message_unit"]];
+    cell.unreadLabel.text = [NSString stringWithFormat:@"%ld",unreadCount];
     
     NSMutableAttributedString *introAttributedString;
     NSString *timeString;
@@ -280,13 +288,12 @@
     }else{
         EM_ChatMessageModel *message = [EM_ChatMessageModel fromEMMessage:[conversation latestMessage]];
         if (message) {
-            if (message.extend.callType){
+            if ([message.messageExtend.identifier isEqualToString:kIdentifierForCall]){
                 EMTextMessageBody *body = (EMTextMessageBody *)message.messageBody;
                 introAttributedString = [[NSMutableAttributedString alloc]initWithString:body.text];
             }else{
-                
-                if (self.delegate && [self.delegate respondsToSelector:@selector(introForConversationWithOpposite:message:)]) {
-                    introAttributedString = [self.delegate introForConversationWithOpposite:opposite message:message];
+                if (self.display && [self.display respondsToSelector:@selector(introForConversationWithOpposite:message:)]) {
+                    introAttributedString = [self.display introForConversationWithOpposite:opposite message:message];
                 }
                 if (!introAttributedString || introAttributedString.length == 0) {
                     
@@ -353,10 +360,10 @@
             }
             timeString = [EM_ChatDateUtils stringFormatterMessageDateFromTimeInterval:message.message.timestamp / 1000];
         }else{
-            if (self.delegate && [self.delegate respondsToSelector:@selector(introForConversationWithOpposite:message:)]) {
-                introAttributedString = [self.delegate introForConversationWithOpposite:opposite message:message];
+            if (self.display && [self.display respondsToSelector:@selector(introForConversationWithOpposite:message:)]) {
+                introAttributedString = [self.display introForConversationWithOpposite:opposite message:message];
             }else{
-                if (opposite) {
+                if (opposite && opposite.intro) {
                     introAttributedString = [[NSMutableAttributedString alloc]initWithString:opposite.intro];
                 }
             }
@@ -373,7 +380,11 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
     EMConversation *conversation;
     if (tableView == _tableView) {
-        conversation = [EaseMob sharedInstance].chatManager.conversations[indexPath.row];
+        if (self.dataSource) {
+            conversation = [self.dataSource dataForRowAtIndex:indexPath.row];
+        }else{
+            conversation = _dataConversations[indexPath.row];
+        }
     }else{
         conversation = _searchResultArray[indexPath.row];
     }
@@ -396,7 +407,26 @@
 
 #pragma mark - EMChatManagerChatDelegate
 - (void)didUpdateConversationList:(NSArray *)conversationList{
+    NSComparator comparator = ^(id obj1, id obj2){
+        EMConversation *msg1 = obj1;
+        EMConversation *msg2 = obj2;
+        
+        if (msg1.latestMessage && msg2.latestMessage) {
+            if (msg1.latestMessage.timestamp > msg2.latestMessage.timestamp) {
+                return (NSComparisonResult)NSOrderedAscending;
+            }
+            
+            if (msg1.latestMessage.timestamp < msg2.latestMessage.timestamp) {
+                return (NSComparisonResult)NSOrderedDescending;
+            }
+        }
+        return (NSComparisonResult)NSOrderedSame;
+    };
+    
+    _dataConversations = [[EaseMob sharedInstance].chatManager.conversations sortedArrayUsingComparator:comparator];
+    
     //手动向会话添加消息时
+    [self endRefresh];
     if (self.isShow) {
         [_tableView reloadData];
     }else{
@@ -406,7 +436,7 @@
 
 - (void)didReceiveMessage:(EMMessage *)message{
     if (self.isShow) {
-        [_tableView reloadData];
+        [self reloadData];
     }else{
         self.needReload = YES;
     }
@@ -414,7 +444,7 @@
 
 - (void)didReceiveOfflineMessages:(NSArray *)offlineMessages{
     if (self.isShow) {
-        [_tableView reloadData];
+        [self reloadData];
     }else{
         self.needReload = YES;
     }
@@ -422,7 +452,7 @@
 
 - (void)didUnreadMessagesCountChanged{
     if (self.isShow) {
-        [_tableView reloadData];
+        [self reloadData];
     }else{
         self.needReload = YES;
     }

@@ -21,6 +21,8 @@
 
 - (void)reloadOppositeList;
 
+- (void)reloadOppositeGroupWithIndex:(NSInteger)index;
+
 - (void)startRefresh;
 
 - (void)endRefresh;
@@ -124,6 +126,15 @@
 - (NSString *)iconForTagAtIndex:(NSInteger)index;
 
 /**
+ *  角标
+ *
+ *  @param index
+ *
+ *  @return 
+ */
+- (NSInteger)badgeForTagAtIndex:(NSInteger)index;
+
+/**
  *  是否显示分组管理菜单
  *
  *  @return
@@ -133,7 +144,7 @@
 /**
  *  好友分组数量
  *
- *  @return 默认1,如果为1则不显示分组
+ *  @return 默认1
  */
 - (NSInteger)numberOfGroups;
 
@@ -173,13 +184,6 @@
 - (BOOL)shouldReloadSearchForSearchString:(NSString *)searchString;
 
 /**
- *  搜索结果被点击
- *
- *  @param index
- */
-- (void)didSelectedForSearchRowAtIndex:(NSInteger)index;
-
-/**
  *  tag被点击
  *
  *  @param index
@@ -203,10 +207,9 @@
 /**
  *  好友，群或者讨论组被点击
  *
- *  @param rowIndex
- *  @param groupIndex
+ *  @param opposite
  */
-- (void)didSelectedForRowAtIndex:(NSInteger)rowIndex groupIndex:(NSInteger)groupIndex;
+- (void)didSelectedWithOpposite:(EM_ChatOpposite *)opposite;
 
 /**
  *  已经开始开始下拉刷新

@@ -6,16 +6,11 @@
 //  Copyright (c) 2015年 周玉震. All rights reserved.
 //
 
-#import "EM+ChatMessageExtend.h"
+#import "EM+ChatMessageExtendBody.h"
 
-//key
-#define kExtendAttributeKeyExtend           (kExtendAttributeNameExtend)
+#define kIdentifierForCustom               (@"kIdentifierForCustom")
 
-
-//name
-#define kExtendAttributeNameExtend          (@"extendProperty")
-
-@interface UserCustomExtend : EM_ChatMessageExtend
+@interface UserCustomExtend : EM_ChatMessageExtendBody
 
 @property (nonatomic, copy) NSString *extendProperty;
 

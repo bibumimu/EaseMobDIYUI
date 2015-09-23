@@ -18,6 +18,20 @@
     UIImageView *imageView;
 }
 
++ (CGSize)sizeForContentWithMessage:(EM_ChatMessageModel *)message maxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config{
+    if (CGSizeEqualToSize(message.bodySize , CGSizeZero)) {
+        CGSize size;
+        
+        EMImageMessageBody *imageBody = (EMImageMessageBody *)message.messageBody;
+        size = imageBody.thumbnailSize;
+        size.height += config.bodyImagePadding * 2;
+        size.width += config.bodyImagePadding * 2;
+        
+        message.bodySize = size;
+    }
+    return message.bodySize;
+}
+
 - (instancetype)init{
     self = [super init];
     if (self) {

@@ -19,9 +19,6 @@
     NSString *dateString;
 
     NSDate *currentDate = [NSDate date];//date必然小于currentDate
-    if (currentDate.timeIntervalSince1970 < date.timeIntervalSince1970) {
-        dateString = @"";
-    }
     
     NSDateComponents *currentComponents = [self dateComponentsFromDate:currentDate];
     NSDateComponents *dateComponents = [self dateComponentsFromDate:date];

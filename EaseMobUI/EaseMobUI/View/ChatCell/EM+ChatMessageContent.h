@@ -71,6 +71,8 @@ extern NSString * const MENU_ACTION_FORWARD;//转发
 @property (nonatomic, strong) EM_ChatMessageUIConfig *config;
 
 
++ (CGSize )sizeForContentWithMessage:(EM_ChatMessageModel *)message maxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config;
+
 //overwrite
 
 /**

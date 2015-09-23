@@ -41,18 +41,18 @@ NSString * const kEMChatIconMoreStop = @"\ue610";
 NSString * const kEMChatIconBubbleTailLeft = @"\ue611";
 NSString * const kEMChatIconBubbleTailRight = @"\ue612";
 
-NSString * const kEMChatIconCallHangup = @"\ue613";
-NSString * const kEMChatIconCallConnect = @"\ue614";
-NSString * const kEMChatIconCallSilence = @"\ue615";
-NSString * const kEMChatIconCallExpand = @"\ue616";
+NSString * const kEMChatIconCallSilence = @"\ue613";
+NSString * const kEMChatIconCallExpand = @"\ue614";
+NSString * const kEMChatIconCallVideoPlay = @"\ue615";
+NSString * const kEMChatIconCallConnect = @"\ue616";
+NSString * const kEMChatIconCallHangup = @"\ue617";
 
-NSString * const kEMChatIconBuddyShrink = @"\ue617";
-NSString * const kEMChatIconBuddyStretch = @"\ue618";
+NSString * const kEMChatIconBuddyNew = @"\ue618";
+NSString * const kEMChatIconBuddyGroup = @"\ue619";
+NSString * const kEMChatIconBuddyRoom = @"\ue61a";
+NSString * const kEMChatIconBuddyBlacklist = @"\ue61b";
 
-NSString * const kEMChatIconBuddyNew = @"\ue619";
-NSString * const kEMChatIconBuddyGroup = @"\ue61a";
-NSString * const kEMChatIconBuddyRoom = @"\ue61b";
-NSString * const kEMChatIconBuddyBlacklist = @"\ue61c";
+NSString * const kEMChatIconCallReset    = @"\ue61c";
 
 + (NSString *)stringWithName:(NSString *)name{
     return [self stringWithName:name table:@"EM_ChatStrings"];
@@ -110,6 +110,24 @@ NSString * const kEMChatIconBuddyBlacklist = @"\ue61c";
     
     UIFont *font = [UIFont fontWithName:kEMChatIconFontName size:size];
     return font;
+}
+
++ (NSArray *)loadingImageArray{
+    NSMutableArray *loadingArray = [[NSMutableArray alloc]init];
+    for (int i = 0; i < 12; i++) {
+        NSString *imageName = [NSString stringWithFormat:@"loading%d",i+1];
+        [loadingArray addObject:[UIImage imageNamed:[NSString stringWithFormat:@"EM_Resource.bundle/images/loading/%@",imageName]]];
+    }
+    return loadingArray;
+}
+
++ (NSArray *)pullingImageArray{
+    NSMutableArray *loadingArray = [[NSMutableArray alloc]init];
+    for (int i = 0; i < 12; i++) {
+        NSString *imageName = [NSString stringWithFormat:@"load%d",i+1];
+        [loadingArray addObject:[UIImage imageNamed:[NSString stringWithFormat:@"EM_Resource.bundle/images/pulling/%@",imageName]]];
+    }
+    return loadingArray;
 }
 
 @end
