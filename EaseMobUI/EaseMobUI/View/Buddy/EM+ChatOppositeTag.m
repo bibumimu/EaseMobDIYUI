@@ -93,10 +93,14 @@
     [iconView setImage:nil forState:UIControlStateNormal];
 }
 
-- (void)setBadge:(NSString *)badge{
+- (void)setBadge:(NSInteger)badge{
     _badge = badge;
-    badgeLabel.text = _badge;
-    badgeLabel.hidden = !_badge || _badge.length == 0;
+    if (_badge > 0) {
+        badgeLabel.text = [NSString stringWithFormat:@"%ld",_badge];;
+    }else{
+        badgeLabel.text = nil;
+    }
+    badgeLabel.hidden = _badge == 0;
 }
 
 @end

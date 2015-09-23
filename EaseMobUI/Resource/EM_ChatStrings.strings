@@ -70,6 +70,11 @@ record.will_audition = "松开试听";
 record.normal_record = "按住说话";
 record.will_record = "准备中...";
 
+buddy.new = "新朋友";
+buddy.group = "群组";
+buddy.room = "讨论组";
+buddy.blacklist = "黑名单";
+
 call.in = "%@\n\n正在呼叫您...";
 call.out = "%@\n\n正在等待接听...";
 call.ongoing = "%@\n\n正在通话\n%@";

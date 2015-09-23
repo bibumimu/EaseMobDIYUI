@@ -21,6 +21,8 @@
 
 - (void)reloadOppositeList;
 
+- (void)reloadOppositeGroupWithIndex:(NSInteger)index;
+
 - (void)startRefresh;
 
 - (void)endRefresh;
@@ -130,7 +132,7 @@
  *
  *  @return 
  */
-- (NSString *)badgeForTagAtIndex:(NSInteger)index;
+- (NSInteger)badgeForTagAtIndex:(NSInteger)index;
 
 /**
  *  是否显示分组管理菜单
@@ -182,13 +184,6 @@
 - (BOOL)shouldReloadSearchForSearchString:(NSString *)searchString;
 
 /**
- *  搜索结果被点击
- *
- *  @param index
- */
-- (void)didSelectedForSearchRowAtIndex:(NSInteger)index;
-
-/**
  *  tag被点击
  *
  *  @param index
@@ -215,7 +210,7 @@
  *  @param rowIndex
  *  @param groupIndex
  */
-- (void)didSelectedForRowAtIndex:(NSInteger)rowIndex groupIndex:(NSInteger)groupIndex;
+- (void)didSelectedWithOpposite:(EM_ChatOpposite *)opposite;
 
 /**
  *  已经开始开始下拉刷新

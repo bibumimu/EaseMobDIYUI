@@ -17,7 +17,7 @@
 @property (nonatomic, strong) UIFont *font;
 @property (nonatomic, copy) NSString *icon;
 
-@property (nonatomic, copy) NSString *badge;
+@property (nonatomic, assign) NSInteger badge;
 
 @property (nonatomic, assign) BOOL tagSelected;
 

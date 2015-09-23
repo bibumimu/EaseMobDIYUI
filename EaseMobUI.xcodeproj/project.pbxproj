@@ -2099,6 +2099,9 @@
 							com.apple.Maps.iOS = {
 								enabled = 1;
 							};
+							com.apple.Push = {
+								enabled = 1;
+							};
 						};
 					};
 					B9BF0E0F1B42889F0003FF67 = {
@@ -2613,7 +2616,7 @@
 					"$(PROJECT_DIR)/EaseMobUI/EaseMobUI/Common/Rdparty",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE = "09a37cb5-5f2a-4c28-8aba-a63878720d4f";
 			};
 			name = Debug;
 		};
@@ -2635,7 +2638,7 @@
 					"$(PROJECT_DIR)/EaseMobUI/EaseMobUI/Common/Rdparty",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE = "09a37cb5-5f2a-4c28-8aba-a63878720d4f";
 			};
 			name = Release;
 		};

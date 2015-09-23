@@ -29,15 +29,15 @@
 
 @interface EM_ChatListController ()<UITableViewDataSource,UITableViewDelegate,UISearchDisplayDelegate,EMChatManagerDelegate,EM_ChatTableViewTapDelegate,SWTableViewCellDelegate>
 
+@property (nonatomic, strong) EM_ChatTableView *tableView;
+
+@property (nonatomic, strong) NSMutableArray *searchResultArray;
+@property (nonatomic, strong) NSArray *dataConversations;
 @property (nonatomic, assign) BOOL needReload;
 
 @end
 
-@implementation EM_ChatListController{
-    EM_ChatTableView *_tableView;
-    NSMutableArray *_searchResultArray;
-    NSArray *_dataConversations;
-}
+@implementation EM_ChatListController
 
 - (instancetype)init{
     self = [super init];

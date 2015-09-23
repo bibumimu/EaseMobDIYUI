@@ -30,6 +30,7 @@
         _arrowLabel = [[UILabel alloc]init];
         _arrowLabel.font = [EM_ChatResourcesUtils iconFontWithSize:16];
         _arrowLabel.textColor = [UIColor blackColor];
+        _arrowLabel.text = KEMChatIconMorePlay;
         [self.contentView addSubview:_arrowLabel];
         
         _titleLabel = [[UILabel alloc]init];
