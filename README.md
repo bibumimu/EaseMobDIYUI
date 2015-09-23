@@ -1119,11 +1119,10 @@ customMessage.messageExtend.extendBody = custom;
     label.text = extend.extendProperty;
 }
 ```
-```EM_ChatMessageExtendView```本身没有太多可以实现的（后期会加入更多的实现），和```EM_ChatMessageBodyView```（用来显示消息内容的View）一样都是继承自```EM_ChatMessageContent```。你可以重写```EM_ChatMessageContent```的一些方法来实现更多的功能。
+EM_ChatMessageExtendView本身没有太多可以实现的（后期会加入更多的实现），和```EM_ChatMessageBodyView```（用来显示消息内容的View）一样都是继承自```EM_ChatMessageContent```。你可以重写```EM_ChatMessageContent```的一些方法来实现更多的功能。
 ```
 EM_ChatMessageContent
 ```
-目前你只需要关注该类中的实现。
 ```
 #import <UIKit/UIKit.h>
 @class EM_ChatMessageModel;
