@@ -1645,7 +1645,6 @@
 				B965FD8A1B5359DC00B5B23B /* Rdparty */,
 				B9782A021B43F00100D602F0 /* Category */,
 				B9782A001B43EF7200D602F0 /* Class */,
-				B9D1BF7D1B5A4C3900C0A3D4 /* internal */,
 				B9782A011B43EFAC00D602F0 /* View */,
 			);
 			path = Common;
@@ -1992,6 +1991,7 @@
 		B9D1BF791B5A4C3900C0A3D4 /* DeviceUtil */ = {
 			isa = PBXGroup;
 			children = (
+				B9D1BF7D1B5A4C3900C0A3D4 /* internal */,
 				B9D1BF7A1B5A4C3900C0A3D4 /* delegates */,
 			);
 			path = DeviceUtil;
@@ -2026,8 +2026,7 @@
 				B9D1BF8C1B5A4C3900C0A3D4 /* EMCDDeviceManagerBase.h */,
 				B9D1BF8D1B5A4C3900C0A3D4 /* EMCDDeviceManagerBase.m */,
 			);
-			name = internal;
-			path = Rdparty/DeviceUtil/internal;
+			path = internal;
 			sourceTree = "<group>";
 		};
 		DCEF3704E015E69BA9E67AC5 /* Frameworks */ = {
