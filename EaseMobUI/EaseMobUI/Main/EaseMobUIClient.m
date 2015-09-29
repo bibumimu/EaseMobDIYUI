@@ -383,6 +383,7 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
         notification.timeZone = [NSTimeZone defaultTimeZone];
         notification.soundName = UILocalNotificationDefaultSoundName;
         [[UIApplication sharedApplication] scheduleLocalNotification:notification];
+        [UIApplication sharedApplication].applicationIconBadgeNumber += 1;
 #if !TARGET_IPHONE_SIMULATOR
         [[EMCDDeviceManager sharedInstance] playVibration];//震动
 #endif
