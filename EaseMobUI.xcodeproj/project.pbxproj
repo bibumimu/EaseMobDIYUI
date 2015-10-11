@@ -1645,7 +1645,6 @@
 				B965FD8A1B5359DC00B5B23B /* Rdparty */,
 				B9782A021B43F00100D602F0 /* Category */,
 				B9782A001B43EF7200D602F0 /* Class */,
-				B9D1BF7D1B5A4C3900C0A3D4 /* internal */,
 				B9782A011B43EFAC00D602F0 /* View */,
 			);
 			path = Common;
@@ -1992,6 +1991,7 @@
 		B9D1BF791B5A4C3900C0A3D4 /* DeviceUtil */ = {
 			isa = PBXGroup;
 			children = (
+				B9D1BF7D1B5A4C3900C0A3D4 /* internal */,
 				B9D1BF7A1B5A4C3900C0A3D4 /* delegates */,
 			);
 			path = DeviceUtil;
@@ -2026,8 +2026,7 @@
 				B9D1BF8C1B5A4C3900C0A3D4 /* EMCDDeviceManagerBase.h */,
 				B9D1BF8D1B5A4C3900C0A3D4 /* EMCDDeviceManagerBase.m */,
 			);
-			name = internal;
-			path = Rdparty/DeviceUtil/internal;
+			path = internal;
 			sourceTree = "<group>";
 		};
 		DCEF3704E015E69BA9E67AC5 /* Frameworks */ = {
@@ -2052,6 +2051,7 @@
 				B9BF0DF41B42889F0003FF67 /* Frameworks */,
 				B9BF0DF51B42889F0003FF67 /* Resources */,
 				50B1E917C04D3B68CCD12DAD /* Copy Pods Resources */,
+				9D4222268B3B87B3990D99A7 /* Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -2190,6 +2190,21 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods/Pods-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		9D4222268B3B87B3990D99A7 /* Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods/Pods-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

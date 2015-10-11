@@ -25,7 +25,7 @@
 * [期望](#3)
   
 <h2 id = "1">简介</h2>
-集成环信的即时通讯功能，pod集成，方便管理。简单继承，轻松定制自己的UI界面。当前最新版本```0.2.5```,主要由会话列表(```EM_ConversationListController```)、好友列表(```EM_FriendsController```)和聊天界面(```EM_ChatController```)组成。很多功能和界面都在开发中，聊天界面的UI也没有开发完善，所以现在显示很挫。在```1.0.0```版本之前会完成所有可以使用环信SDK实现的功能，并且加入其它实用的功能，在此之前也不适合使用。当然你也可以参考环信的[Demo](http://www.easemob.com/downloads)。
+集成环信的即时通讯功能，pod集成，方便管理。简单继承，轻松定制自己的UI界面。当前最新版本```0.2.6```,主要由会话列表(```EM_ConversationListController```)、好友列表(```EM_FriendsController```)和聊天界面(```EM_ChatController```)组成。很多功能和界面都在开发中，聊天界面的UI也没有开发完善，所以现在显示很挫。在```1.0.0```版本之前会完成所有可以使用环信SDK实现的功能，并且加入其它实用的功能，在此之前也不适合使用。当然你也可以参考环信的[Demo](http://www.easemob.com/downloads)。
 
 <h3 id = "1.1">环信SDK</h3>
 使用pod集成的[EaseMobSDKFull](https://github.com/easemob/sdk-ios-cocoapods-integration)，集成版本```2.2.0```。因为pod集成[EaseMobSDK](https://github.com/easemob/sdk-ios-cocoapods/tree/master/EaseMobSDK)是没有语音和视频通讯功能的。根据环信的官方文档来看，pod集成的是私有库，cocoapods公共库上的SDK已经弃用了。所以需要大家自己单独pod环信SDK
@@ -73,10 +73,14 @@ pod 'VoiceConvert',:git => "https://github.com/AwakenDragon/VoiceConvert.git"
 - ```Emoji```       Emoji表情，无法pod   [Emoji](https://github.com/limejelly/Emoji)
 所以你不需要再额外pod这些了。后期我会对依赖做适当的增加或删除。
 
-**注意：**在pod完成开始运行的时候， [EaseMobSDKFull](https://github.com/easemob/sdk-ios-cocoapods-integration.git)
+**注意事项1：**在pod完成开始运行的时候， [EaseMobSDKFull](https://github.com/easemob/sdk-ios-cocoapods-integration.git)
 的一个文件*```EMErrorDefs.h```*可能会报错，具体原因是几个枚举没有或者重复。
 
 **解决办法：**从环信最新的SDK([EaseMobSDK](https://github.com/easemob/sdk-ios-cocoapods/tree/master/EaseMobSDK) )中拿到这个文件，然后进入自己项目[EaseMobSDKFull](https://github.com/easemob/sdk-ios-cocoapods-integration.git)的对应pod目录，覆盖掉该文件即可。虽然在```XCode```里不允许修改pod的文件，但这样做事没有问题的。
+
+**注意事项2：**当前Git上的项目其实就是一个```Demo```，然后把其中一部分作为```pod```。相信你在看podspec文件的时候就能够看出来，当你```clone```本项目的时候，也需要```pod install```命令来集成一些必要的组件。如果你直接运行```pod install```命令是不行的，直接报错。因为项目的```Podfile```文件中有的组件是通过本地路径来```pod```的，我也是通过这种方式来测试```pod```的。
+
+**解决办法：**将本地```pod```路径修改为对应的网络路径便可。例如```pod 'EaseMobSDKFull', :git => '/Users/ZhouYuzhen/Documents/Git/IOS/EaseMobSDKFull'```改为```pod 'EaseMobSDKFull',:git => 'https://github.com/easemob/sdk-ios-cocoapods-integration.git'```即可。项目所用到的所有第三方组件都会在文档中有跳转链接。不过我的建议是，最好把一些大的组件```clone```到本地，然后进行本地```pod```，这样速度会很快。
 
 **文件目录：**
 - ```EaseMobSDK --> include --> Utility --> ErrorManager --> EMErrorDefs.h``` 

@@ -93,6 +93,7 @@
     }
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didChatEditorChanged) name:kEMNotificationEditorChanged object:nil];
+    [self setBadgeValue];
 }
 
 - (void)viewDidAppear:(BOOL)animated{
@@ -113,6 +114,17 @@
 - (void)dealloc{
     [[EaseMob sharedInstance].chatManager removeDelegate:self];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)setBadgeValue{
+    if (self.tabBarItem) {
+        NSInteger unreadMessagesCount = [[EaseMob sharedInstance].chatManager loadTotalUnreadMessagesCountFromDatabase];
+        if (unreadMessagesCount > 0) {
+            self.tabBarItem.badgeValue = [NSString stringWithFormat:@"%ld",unreadMessagesCount];
+        }else{
+            self.tabBarItem.badgeValue = nil;
+        }
+    }
 }
 
 - (void)didEndCall:(NSNotification *)notification{
@@ -456,6 +468,7 @@
     }else{
         self.needReload = YES;
     }
+    [self setBadgeValue];
 }
 
 #pragma mark - EMChatManagerBuddyDelegate

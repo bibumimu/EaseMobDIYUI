@@ -25,12 +25,17 @@
 + (CGSize )sizeForBubbleWithMessage:(EM_ChatMessageModel *)message maxWidth:(CGFloat)maxWidth config:(EM_ChatMessageUIConfig *)config{
     if (CGSizeEqualToSize(message.bubbleSize, CGSizeZero)) {
         CGFloat contentMaxtWidth = maxWidth - config.bubblePadding * 2;
-        if (message.messageExtend.showBody) {
+        BOOL show = message.messageExtend.showBody || message.messageExtend.showExtend;
+        if (show) {
+            if (message.messageExtend.showBody) {
+                message.bodySize = [[message classForBodyView] sizeForContentWithMessage:message maxWidth:contentMaxtWidth config:config];
+            }
+            
+            if (message.messageExtend.showExtend) {
+                message.extendSize = [[[message.messageExtend.extendBody class] viewForClass] sizeForContentWithMessage:message maxWidth:contentMaxtWidth config:config];
+            }
+        }else{
             message.bodySize = [[message classForBodyView] sizeForContentWithMessage:message maxWidth:contentMaxtWidth config:config];
-        }
-        
-        if (message.messageExtend.showExtend) {
-            message.extendSize = [[[message.messageExtend.extendBody class] viewForClass] sizeForContentWithMessage:message maxWidth:contentMaxtWidth config:config];
         }
         
         message.bubbleSize = CGSizeMake((message.bodySize.width > message.extendSize.width ? message.bodySize.width : message.extendSize.width) + config.bubblePadding * 2, message.bodySize.height + message.extendSize.height + config.bubblePadding * 2);

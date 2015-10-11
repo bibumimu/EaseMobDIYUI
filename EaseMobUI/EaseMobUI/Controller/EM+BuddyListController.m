@@ -448,7 +448,7 @@ UICollectionViewDelegateFlowLayout>
     EM_ChatOpposite *opposite;
     if (tableView == _tableView) {
         if (self.dataSource && [self.dataSource respondsToSelector:@selector(dataForRow:groupIndex:)]) {
-            opposite = [self.dataSource dataForRow:indexPath.section groupIndex:indexPath.row];
+            opposite = [self.dataSource dataForRow:indexPath.row groupIndex:indexPath.section];
         }else{
             if (indexPath.row < self.buddyArray.count) {
                 opposite = self.buddyArray[indexPath.row];
