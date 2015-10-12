@@ -301,6 +301,13 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
 #pragma mark -
 #pragma mark - EMChatManagerChatDelegate
 - (void)didReceiveMessage:(EMMessage *)message{
+    EM_ChatMessageModel *model = [EM_ChatMessageModel fromEMMessage:message];
+    if (model.messageExtend.extendAttributes) {
+        if (self.notificationDelegate && [self.notificationDelegate respondsToSelector:@selector(didReceiveMessageWithExtend:)]) {
+            [self.notificationDelegate didReceiveMessageWithExtend:model.messageExtend.extendAttributes];
+        }
+    }
+    
     if ([UIApplication sharedApplication].applicationState != UIApplicationStateBackground) {
         [[EMCDDeviceManager sharedInstance] playNewMessageSound];//声音
 #if !TARGET_IPHONE_SIMULATOR
@@ -309,8 +316,6 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
     }else{
         
         NSString *alertBody;
-        
-        EM_ChatMessageModel *model = [EM_ChatMessageModel fromEMMessage:message];
         EMPushNotificationOptions *options = [[EaseMob sharedInstance].chatManager pushNotificationOptions];
         if (options.displayStyle == ePushNotificationDisplayStyle_messageSummary) {
             if ([model.messageExtend.identifier isEqualToString:kIdentifierForExtend]) {

@@ -48,6 +48,8 @@ extern NSString * const kEMCallTypeVideo;
  */
 @property (nonatomic, weak) id<EM_ChatNotificationDelegate> notificationDelegate;
 
+
+
 + (instancetype)sharedInstance;
 
 + (BOOL)canRecord;
@@ -169,5 +171,12 @@ extern NSString * const kEMCallTypeVideo;
  *  @return 默认“发来一个新消息”，默认自动在前面加上消息发送者的显示名称
  */
 - (NSString *)alertBodyWithMessage:(EM_ChatMessageModel *)message;
+
+/**
+ *  收到带隐藏扩展的消息，及不会显示在界面上的扩展
+ *
+ *  @param extend
+ */
+- (void)didReceiveMessageWithExtend:(NSDictionary *)extend;
 
 @end
