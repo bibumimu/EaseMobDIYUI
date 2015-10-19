@@ -32,14 +32,18 @@
     if (message) {
         EM_ChatMessageModel *model = [[EM_ChatMessageModel alloc]init];
         model.message = message;
-        model.messageExtend = [[EM_ChatMessageExtend alloc]initWithDictionary:message.ext error:nil];
-        NSDictionary *extendBody = message.ext[@"extendBody"];
-        NSString *identifier  = message.ext[kIdentifier];
-        Class cls = [[EaseMobUIClient sharedInstance] classForExtendWithIdentifier:identifier];
-        if (cls) {
-            model.messageExtend.extendBody = [[cls alloc]initWithDictionary:extendBody error:nil];
+        if(message.ext){
+            model.messageExtend = [[EM_ChatMessageExtend alloc]initWithDictionary:message.ext error:nil];
+            NSDictionary *extendBody = message.ext[@"extendBody"];
+            NSString *identifier  = message.ext[kIdentifier];
+            Class cls = [[EaseMobUIClient sharedInstance] classForExtendWithIdentifier:identifier];
+            if (cls) {
+                model.messageExtend.extendBody = [[cls alloc]initWithDictionary:extendBody error:nil];
+            }else{
+                model.messageExtend.extendBody = [[EM_ChatMessageExtendBody alloc]initWithDictionary:extendBody error:nil];
+            }
         }else{
-            model.messageExtend.extendBody = [[EM_ChatMessageExtendBody alloc]initWithDictionary:extendBody error:nil];
+            model.messageExtend = [[EM_ChatMessageExtend alloc]init];
         }
         return model;
     }
