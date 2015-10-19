@@ -29,10 +29,14 @@
         if (show) {
             if (message.messageExtend.showBody) {
                 message.bodySize = [[message classForBodyView] sizeForContentWithMessage:message maxWidth:contentMaxtWidth config:config];
+            }else{
+                message.bodySize = CGSizeZero;
             }
             
             if (message.messageExtend.showExtend) {
                 message.extendSize = [[[message.messageExtend.extendBody class] viewForClass] sizeForContentWithMessage:message maxWidth:contentMaxtWidth config:config];
+            }else{
+                message.extendSize = CGSizeZero;
             }
         }else{
             message.bodySize = [[message classForBodyView] sizeForContentWithMessage:message maxWidth:contentMaxtWidth config:config];
@@ -67,24 +71,16 @@
     
     CGSize bodySize = self.message.bodySize;
     CGSize extendSize = self.message.extendSize;
-    
-    if (self.message.messageExtend.showBody) {
-        if (self.message.sender) {
-            _bodyView.frame = CGRectMake(size.width - self.config.bubblePadding - bodySize.width, self.config.bubblePadding, bodySize.width, bodySize.height);
-        }else{
-            _bodyView.frame = CGRectMake(self.config.bubblePadding, self.config.bubblePadding, bodySize.width, bodySize.height);
-        }
+    if (self.message.sender) {
+        _bodyView.frame = CGRectMake(size.width - self.config.bubblePadding - bodySize.width, self.config.bubblePadding, bodySize.width, bodySize.height);
     }else{
-        _bodyView.frame = CGRectZero;
+        _bodyView.frame = CGRectMake(self.config.bubblePadding, self.config.bubblePadding, bodySize.width, bodySize.height);
     }
     
     if (self.message.messageExtend.showExtend) {
         _extendView.bounds = CGRectMake(0, 0, extendSize.width, extendSize.height);
         _extendView.center = CGPointMake(size.width / 2, _bodyView.frame.origin.y + _bodyView.frame.size.height + extendSize.height / 2);
-    }else{
-        _extendView.frame = CGRectZero;
     }
-    
 }
 
 - (void)setConfig:(EM_ChatMessageUIConfig *)config{
