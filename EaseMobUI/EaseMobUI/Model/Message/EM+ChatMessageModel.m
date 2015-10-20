@@ -42,6 +42,10 @@
             }else{
                 model.messageExtend.extendBody = [[EM_ChatMessageExtendBody alloc]initWithDictionary:extendBody error:nil];
             }
+            if (!model.messageExtend.showBody && !model.messageExtend.showExtend) {
+                model.messageExtend.showBody = YES;
+                model.messageExtend.showExtend = NO;
+            }
         }else{
             model.messageExtend = [[EM_ChatMessageExtend alloc]init];
         }

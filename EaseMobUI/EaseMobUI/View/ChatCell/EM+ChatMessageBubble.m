@@ -94,8 +94,14 @@
     _bodyView.message = _message;
     _extendView.message = _message;
     
-    _bodyView.hidden = !_message.messageExtend.showBody;
-    _extendView.hidden = !_message.messageExtend.showExtend;
+    BOOL show = _message.messageExtend.showBody || _message.messageExtend.showExtend;
+    if (show) {
+        _bodyView.hidden = !_message.messageExtend.showBody;
+        _extendView.hidden = !_message.messageExtend.showExtend;
+    }else{
+        _bodyView.hidden = NO;
+        _extendView.hidden = YES;
+    }
 }
 
 @end
