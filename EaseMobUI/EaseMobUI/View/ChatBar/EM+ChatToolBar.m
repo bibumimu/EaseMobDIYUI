@@ -116,7 +116,7 @@
     contentInset.bottom = _keyboardRect.size.height + (bounds.size.height - HEIGHT_MORE_TOOL_OF_DEFAULT);
     
     CGPoint center = self.center;
-    center.y = SCREEN_HEIGHT - contentInset.bottom + bounds.size.height / 2;
+    center.y = _chatTableView.superview.frame.size.height - contentInset.bottom + bounds.size.height / 2;
     
     CGFloat duration = [[[notification userInfo] objectForKey:UIKeyboardAnimationDurationUserInfoKey] floatValue];
     NSUInteger options = [[[notification userInfo] objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue];
@@ -149,7 +149,7 @@
         contentInset.bottom = bounds.size.height - HEIGHT_MORE_TOOL_OF_DEFAULT;
         
         CGPoint center = self.center;
-        center.y = SCREEN_HEIGHT - contentInset.bottom + bounds.size.height / 2;
+        center.y = _chatTableView.superview.frame.size.height - contentInset.bottom + bounds.size.height / 2;
         
         CGFloat duration = [[[notification userInfo] objectForKey:UIKeyboardAnimationDurationUserInfoKey] floatValue];
         NSUInteger options = [[[notification userInfo] objectForKey:UIKeyboardAnimationCurveUserInfoKey] intValue];
@@ -189,7 +189,7 @@
     contentInset.bottom = bounds.size.height;
     
     CGPoint center = self.center;
-    center.y = SCREEN_HEIGHT - contentInset.bottom / 2;
+    center.y = _chatTableView.superview.frame.size.height - contentInset.bottom / 2;
     
     [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
         _chatTableView.contentInset = contentInset;
@@ -211,7 +211,7 @@
     contentInset.bottom = self.bounds.size.height - HEIGHT_MORE_TOOL_OF_DEFAULT;
     
     CGPoint center = self.center;
-    center.y = SCREEN_HEIGHT + HEIGHT_MORE_TOOL_OF_DEFAULT - self.bounds.size.height / 2;
+    center.y = _chatTableView.superview.frame.size.height + HEIGHT_MORE_TOOL_OF_DEFAULT - self.bounds.size.height / 2;
     
     [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseIn animations:^{
         _chatTableView.contentInset = contentInset;
@@ -305,7 +305,7 @@
         }
     }
     
-    center.y = SCREEN_HEIGHT - contentInset.bottom + bounds.size.height / 2;
+    center.y = _chatTableView.superview.frame.size.height - contentInset.bottom + bounds.size.height / 2;
     
     _chatTableView.contentInset = contentInset;
     self.bounds = bounds;
@@ -355,7 +355,7 @@
 }
 
 - (void)didRecordStart{
-    self.cover.frame = CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT - self.bounds.size.height);
+    self.cover.frame = CGRectMake(0, 0, SCREEN_WIDTH, _chatTableView.superview.frame.size.height - self.bounds.size.height);
     [EM_Window addSubview:self.cover];
     [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         self.cover.alpha = 0.3;
