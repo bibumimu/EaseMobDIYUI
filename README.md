@@ -76,15 +76,14 @@ pod 'VoiceConvert',:git => "https://github.com/AwakenDragon/VoiceConvert.git"
 **注意事项1：**在pod完成开始运行的时候， [EaseMobSDKFull](https://github.com/easemob/sdk-ios-cocoapods-integration.git)
 的一个文件*```EMErrorDefs.h```*可能会报错，具体原因是几个枚举没有或者重复。
 
-**解决办法：**从环信最新的SDK([EaseMobSDK](https://github.com/easemob/sdk-ios-cocoapods/tree/master/EaseMobSDK) )中拿到这个文件，然后进入自己项目[EaseMobSDKFull](https://github.com/easemob/sdk-ios-cocoapods-integration.git)的对应pod目录，覆盖掉该文件即可。虽然在```XCode```里不允许修改pod的文件，但这样做事没有问题的。
+**解决办法：**从环信最新的SDK([EaseMobSDK](https://github.com/easemob/sdk-ios-cocoapods/tree/master/EaseMobSDK) )中拿到这个文件，然后进入自己项目[EaseMobSDKFull](https://github.com/easemob/sdk-ios-cocoapods-integration.git)的对应pod目录，覆盖掉该文件即可。虽然在```XCode```里不允许修改pod的文件，但这样做是没有问题的。
+**文件目录：**
+- ```EaseMobSDK --> include --> Utility --> ErrorManager --> EMErrorDefs.h``` 
+- ```你项目根目录 --> Pods --> EaseMobSDKFull --> EaseMobSDKFull --> include --> Utility --> ErrorManager --> EMErrorDefs.h```
 
 **注意事项2：**当前Git上的项目其实就是一个```Demo```，然后把其中一部分作为```pod```。相信你在看podspec文件的时候就能够看出来，当你```clone```本项目的时候，也需要```pod install```命令来集成一些必要的组件。如果你直接运行```pod install```命令是不行的，直接报错。因为项目的```Podfile```文件中有的组件是通过本地路径来```pod```的，我也是通过这种方式来测试```pod```的。
 
 **解决办法：**将本地```pod```路径修改为对应的网络路径便可。例如```pod 'EaseMobSDKFull', :git => '/Users/ZhouYuzhen/Documents/Git/IOS/EaseMobSDKFull'```改为```pod 'EaseMobSDKFull',:git => 'https://github.com/easemob/sdk-ios-cocoapods-integration.git'```即可。项目所用到的所有第三方组件都会在文档中有跳转链接。不过我的建议是，最好把一些大的组件```clone```到本地，然后进行本地```pod```，这样速度会很快。
-
-**文件目录：**
-- ```EaseMobSDK --> include --> Utility --> ErrorManager --> EMErrorDefs.h``` 
-- ```你项目根目录 --> Pods --> EaseMobSDKFull --> EaseMobSDKFull --> include --> Utility --> ErrorManager --> EMErrorDefs.h```
 
 <h3 id = "2.4">初始化及权限</h3>
 <h4 id = "2.4.1">初始化</h4>
