@@ -81,10 +81,10 @@ Pod::Spec.new do |s|
   # ――― Project Settings ――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
   s.requires_arc = true
   # s.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
-  s.dependency "SDWebImage", "3.7.3"
-  s.dependency "MJRefresh", "2.4.7"
+  s.dependency "SDWebImage", "~> 3.7.3"
+  s.dependency "MJRefresh", "~> 2.4.11"
   s.dependency "MWPhotoBrowser", "2.1.1"
-  s.dependency "MBProgressHUD", "0.9.1"
+  s.dependency "MBProgressHUD", "~> 0.9.1"
   s.dependency "TTTAttributedLabel", "1.13.4"
   s.dependency "SWTableViewCell", "0.3.7"
   s.dependency "FXBlurView","1.6.3"
