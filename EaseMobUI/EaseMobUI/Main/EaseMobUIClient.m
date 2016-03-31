@@ -355,7 +355,7 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
                 if (self.oppositeDelegate && [self.oppositeDelegate respondsToSelector:@selector(groupInfoWithChatter:)]) {
                     EM_ChatGroup *group = [self.oppositeDelegate groupInfoWithChatter:model.message.conversationChatter];
                     if (group && [self.oppositeDelegate respondsToSelector:@selector(buddyInfoWithChatter:inGroup:)]) {
-                        EM_ChatBuddy *buddy = [self.oppositeDelegate buddyInfoWithChatter:model.message.from inGroup:group];
+                        EM_ChatBuddy *buddy = [self.oppositeDelegate buddyInfoWithChatter:model.message.groupSenderName inGroup:group];
                         displayTitle = [NSString stringWithFormat:@"%@(%@)",group.displayName,buddy.displayName];
                     }
                 }
@@ -363,7 +363,7 @@ NSString * const kEMCallTypeVideo = @"kEMCallActionVideo";
                 if (self.oppositeDelegate && [self.oppositeDelegate respondsToSelector:@selector(roomInfoWithChatter:)]) {
                     EM_ChatRoom *room = [self.oppositeDelegate roomInfoWithChatter:model.message.conversationChatter];
                     if (room && [self.oppositeDelegate respondsToSelector:@selector(buddyInfoWithChatter:inRoom:)]) {
-                        EM_ChatBuddy *buddy = [self.oppositeDelegate buddyInfoWithChatter:model.message.from inRoom:room];
+                        EM_ChatBuddy *buddy = [self.oppositeDelegate buddyInfoWithChatter:model.message.groupSenderName inRoom:room];
                         displayTitle = [NSString stringWithFormat:@"%@(%@)",room.displayName,buddy.displayName];
                     }
                 }

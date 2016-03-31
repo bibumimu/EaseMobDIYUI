@@ -350,9 +350,9 @@
                         //oppositeDelegate必然不为nil
                         if (opposite.oppositeType != EMChatOppositeTypeChat) {
                             if (opposite.oppositeType == EMChatOppositeTypeGroup && [oppositeDelegate respondsToSelector:@selector(buddyInfoWithChatter:inGroup:)]) {
-                                buddy = [oppositeDelegate buddyInfoWithChatter:message.message.from inGroup:(EM_ChatGroup *)opposite];
+                                buddy = [oppositeDelegate buddyInfoWithChatter:message.message.groupSenderName inGroup:(EM_ChatGroup *)opposite];
                             }else if (opposite.oppositeType == EMChatOppositeTypeRoom && [oppositeDelegate respondsToSelector:@selector(buddyInfoWithChatter:inRoom:)]){
-                                buddy = [oppositeDelegate buddyInfoWithChatter:message.message.from inRoom:(EM_ChatRoom *)opposite];
+                                buddy = [oppositeDelegate buddyInfoWithChatter:message.message.groupSenderName inRoom:(EM_ChatRoom *)opposite];
                             }
                         }else{
                             buddy = (EM_ChatBuddy *)opposite;

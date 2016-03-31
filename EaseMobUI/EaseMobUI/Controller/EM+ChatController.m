@@ -339,10 +339,10 @@ EMCDDeviceManagerDelegate>
         id<EM_ChatOppositeDelegate> oppositeDelegate = [EaseMobUIClient sharedInstance].oppositeDelegate;
         if (self.opposite.oppositeType == EMChatOppositeTypeGroup) {
             if (oppositeDelegate && [oppositeDelegate respondsToSelector:@selector(buddyInfoWithChatter:inGroup:)]) {
-                buddy = [oppositeDelegate buddyInfoWithChatter:messageModel.message.from inGroup:(EM_ChatGroup *)_opposite];
+                buddy = [oppositeDelegate buddyInfoWithChatter:messageModel.message.groupSenderName inGroup:(EM_ChatGroup *)_opposite];
             }
         }else if(self.opposite.oppositeType == EMChatOppositeTypeRoom){
-            buddy = [oppositeDelegate buddyInfoWithChatter:messageModel.message.from inRoom:(EM_ChatRoom *)_opposite];
+            buddy = [oppositeDelegate buddyInfoWithChatter:messageModel.message.groupSenderName inRoom:(EM_ChatRoom *)_opposite];
         }else{
             buddy = (EM_ChatBuddy *)_opposite;
         }
